@@ -9,63 +9,128 @@ var pdfUtils = require("./pdfUtils");
 var csvWriter = require("./csvWriter.js");// add 2 to delete images
 var fileExists = require('file-exists');
 var EventEmitter = require('events').EventEmitter;
+//var Promise = require('Promise');
 var _emitter = new EventEmitter();
 var _Products = [];
 var _ProductsCount = 0;
 var _parsedImagesCount = 0;
 var _ProductImagesCount = [];
-//test
-//var _Category = 'Mask & Headgear';
-//var _Category = 'BiPAP Mashine';
-
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-masks/cpap-masks/brand/fisher-paykel.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-masks/cpap-masks/brand/resmed.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-masks/cpap-masks/brand/respironics.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/fisher-paykel.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/resmed.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/resmed/cpap.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/resmed/auto-cpap.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/resmed/bipap.aspx";
-var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/Respironics.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/respironics/cpap.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/respironics/auto-cpap.aspx";
-//var _ProductListUrl = "http://www.cpapsupplyusa.com/cpap-machines/cpap-machines/brand/respironics/bipap.aspx";
-
+var _ProductListUrl = "http://www.1800wheelchair.com/";
 var _lastPageReached = false;
 var _ProductUrls = [];
+var _ProductCategoriesUrls = [];
+var _SubCategoriesUrls = [];
 var _lastImageParsedEmited = false;
 var _readyToBeEmit = false;
-
-// app.get('/scrape', function (req, res) {
-//     fillProductLinks(_ProductListUrl);
-//     res.send(_ProductListUrl);
-// })
-// app.listen('8081')
-//exports = module.exports = app;
-
-var fillProductLinks = function (currentLink) {
+var _repeatedCategoriesCount = 0
+var fillProductCategoriesLinks = function (currentLink) {
     request(currentLink, function (error, response, html) {
         if (!error) {
             var $ = cheerio.load(html);
-            $('#products').filter(function () {
+            $('.home').filter(function () {
                 var data = $(this);
-                var productsUrls = data.find('.SingleProductDisplayName a');
+                var productsUrls = data.find('.home-categories-text-area a');
                 for (var i = 0; i < productsUrls.length; i++) {
-                    _ProductUrls.push("http://www.cpapsupplyusa.com" + $(productsUrls[i]).attr('href'));
+                    var $url = $(productsUrls[i]);
+                    if (!$url.hasClass('read-more')) {
+                        var href = $url.attr('href');
+                        if (_ProductCategoriesUrls.indexOf(href) < 0) {
+                            _ProductCategoriesUrls.push(href);
+                        } else {
+                            _repeatedCategoriesCount++;
+                        }
+                    }
                 }
-                var nextPageUrl = '';
-                var $aNextPage = $("li[id$='_Pager2_NextListItem'] a");
-                if ($aNextPage.length > 0) {
-                    nextPageUrl = $aNextPage.attr('href');
-                }
-                if (nextPageUrl != '') {
-                    fillProductLinks("http://www.cpapsupplyusa.com" + nextPageUrl);
-                } else {
-                    _emitter.emit('theLastPageLinksParsed');
-                }
+                _emitter.emit('theCategoryParsed');
             });
         }
     })
+}
+var _parsedCategoriesCount = 0;
+_emitter.on('theCategoryParsed', function () {
+    var promises = [];
+    var chunkVolume = 75;
+
+    for (var i = 0; i < chunkVolume; i++) {
+        promises.push(fillProductLinks(_ProductCategoriesUrls[i] /*, true*/));
+    }
+    Promise.all(promises).then(values => {
+        debugger;
+        setTimeout(function () {
+            promises = [];
+            for (var i = chunkVolume; i < _ProductCategoriesUrls.length; i++) {
+                promises.push(fillProductLinks(_ProductCategoriesUrls[i] /*, true*/));
+            }
+            console.log('SECOND PART');
+            Promise.all(promises).then(() => {
+                subcategoriesParse();
+            }).then(values => {
+                debugger;
+                for (var i = 0; i < _ProductUrls.length; i++) {
+                    parseProduct(_ProductUrls[i]);
+                }
+            });
+        }, 2000);
+    });
+    // fillProductLinks(_ProductCategoriesUrls[0], true);
+})
+
+//var parseProducts = function
+var subcategoriesParse = function () {
+    debugger;
+    for (var i = 0; i < _SubCategoriesUrls.length; i++) {
+        //todo slavik _SubCategoriesUrls
+    }
+}
+
+var _insideLinks = 0;
+var _isFirstPage = false;
+var fillProductLinks = function (currentLink/*, isFirstPage*/) {
+    return new Promise(function (resolve, reject) {
+        request(currentLink, function (error, response, html) {
+            _insideLinks++;
+            console.log('fpl inside :' + _insideLinks);
+            if (!error) {
+                var $ = cheerio.load(html);
+                var $productList = $('#products-list');
+                if ($productList && $productList.length > 0) {
+                    $productList.filter(function () {
+                        var data = $(this);
+                        var productsUrls = data.find('.product-name a');
+                        for (var i = 0; i < productsUrls.length; i++) {
+                            var href = $(productsUrls[i]).attr('href');
+                            if (_ProductUrls.indexOf(href) < 0) {
+                                _ProductUrls.push(href);
+                            }
+
+                        }
+                        //if (isFirstPage) {
+                        _parsedCategoriesCount++;
+                        console.log('parsed :' + _parsedCategoriesCount);
+                        //}                      
+                        // var nextPageUrl = '';
+                        // var $aNextPage = $('.pagination a.next i-next');
+                        // if ($aNextPage.length > 0) {
+                        //     nextPageUrl = $aNextPage.attr('href');
+                        // }
+                        // if (_parsedCategoriesCount == _ProductCategoriesUrls.length - 5) {
+                        //     debugger;
+                        // }
+                        // if (nextPageUrl != '') {
+                        //     fillProductLinks(nextPageUrl, false);
+                        // } else if (_parsedCategoriesCount == _ProductCategoriesUrls.length) {
+                        //     _emitter.emit('theLastPageLinksParsed');
+                        // }
+                    });
+                } else if (_SubCategoriesUrls.indexOf(currentLink) < 0) {
+                    _SubCategoriesUrls.push(currentLink);
+                }
+            } else {
+                debugger;
+            }
+            resolve('');
+        });
+    });
 }
 
 _emitter.on('theLastPageLinksParsed', function () {
@@ -99,13 +164,7 @@ var parseProduct = exports.ParseProduct = function (url) {
     _parseProductCallCount++;
     request(url, function (error, response, html) {
         if (!error) {
-            var $ = cheerio.load(html);
-
-            $('#Container').filter(function () {
-                var data = $(this);
-                var product = parseDetails(data);
-                saveProduct(product);
-            });
+            parseDetails(html);           
         }
         riseEventIfTheLastProduct();
     })
@@ -142,58 +201,57 @@ var riseEventIfTheLastProduct = function () {
     }
 }
 
-var parseDetails = function (data) {
-    var category = 'BiPAP Mashine';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
-    if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
-        category =  'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';
-    }
-    var product = new Product(category);
-    product.sku = data.find("span[id$='lblSku']").text();
-    //debugger;
-    product.name = cleanText(data.find('.productPageHeader').find("span[id$='lblName']").text());
-    product.price = getFloat(data.find("span[id$='lblListPrice']").text());
-    var priceWithDiscount = data.find("span[id$='lblSitePrice']").text();
+var parseDetails = function (html) {
+    var $ = cheerio.load(html);
 
-    product.productId = data.find("input[id$='bvinField']").val();
+    $('#product_addtocart_form').filter(function () {
+        var data = $(this);
+        //var product = parseDetails(data);  
+        var category = 'Weel Cair';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
+        // if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
+        //     category = 'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';
+        // }
+        var product = new Product(category);
 
-    if (isFloat(priceWithDiscount))
-        product.price = getFloat(priceWithDiscount);
-    if (product.price == 0) {
-        product.price = 'Parts & Supplies Only';
-    }
-    var sizeOprions = [];
-    var isFirst = true;
-    var sizes = data.find(".SizeDD option");
-    if (sizes != undefined && sizes.length > 0) {
-        for (var index = 1; index < sizes.length; index++) {
-            if (csvWriter.IsSizeOptionCheck(sizes[index].children[0].data)) {
-                product.sizeOptions.push(sizes[index].children[0].data);
+        var paragrarphs = data.find("#product-details-tab .basic-information p");
+        for (var i = 0; i < paragrarphs.length; i++) {
+            var paragraphHtml = $(paragrarphs[i]).html();
+            if (paragraphHtml.indexOf('sku') > -1) {
+                $j = cheerio.load(paragraphHtml);
+                product.sku = $j('span').html();
+            }
+            if (paragraphHtml.indexOf('brand') > -1) {
+                $j = cheerio.load(paragraphHtml);
+                product.brand = $j('span').html();
+            }
+            if (paragraphHtml.indexOf('item #') > -1) {
+                $j = cheerio.load(paragraphHtml);
+                product.productId = $j('span').html();
             }
         }
-    } else {
-        var selectOptions = data.find("select[id$='ChoiceList'] option");
-        if (selectOptions != undefined &&
-            selectOptions.length > 0 &&
-            selectOptions[0].children[0].data == 'Select a Size') {
-            for (var index = 1; index < selectOptions.length; index++) {
-                //var optionSize = csvWriter.getSize(selectOptions[index].children[0].data);
-                if (csvWriter.IsSizeOptionCheck(selectOptions[index].children[0].data)) {
-                    product.sizeOptions.push(selectOptions[index].children[0].data);
-                }
+
+        product.name = cleanText(data.find('.product-name').text());
+        product.price = getFloat(data.find(".price").text());  
+        var panels = data.find(".product-view-sublock");
+        for (var i = 0; i < panels.length; i++) {
+            var panelHtml = $(panels[i]).html();
+            //var panelHtmlH2 = $(.html();
+            if (panelHtml.indexOf('<h2>Features') > -1) {
+                product.features = panelHtml;
+            }
+            if (panelHtml.indexOf('<h2>Description') > -1) {
+                product.description = panelHtml;
+            }
+            if (panelHtml.indexOf('<h2>Specifications') > -1) {
+                product.specifications = panelHtml;
             }
         }
-    }
+        // product.specifications = cleanText(specificationsGet(data));
+        // product.resources = downloadAndSaveImage(cleanText(resourcesGet(data)));
+        // product.description = downloadAndSaveImage(cleanText(descriptionGet(data)));
 
-    var brandSpan = data.find("span:contains('Brand/Manufacturer:')");
-    if (brandSpan != undefined) {
-        product.brand = cleanText(brandSpan.next("span").html()).replace('&amp;', '&');
-    }
-
-    product.specifications = downloadAndSaveImage(cleanText(specificationsGet(data)));
-    product.resources = downloadAndSaveImage(cleanText(resourcesGet(data)));
-    product.description = downloadAndSaveImage(cleanText(descriptionGet(data)));
-
-    return product;
+        saveProduct(product);
+    });
 }
 
 var downloadAndSaveImage = function (text) {
@@ -241,15 +299,15 @@ var descriptionGet = function (data) {
 }
 
 var specificationsGet = function (data) {
-    var pdfList = pdfsDownload(data, 'Specs')
-    var result = '';
-    var panel = data.find('#Specs .producttypepanel')
-    var legal = data.find('#Specs .legal');
-    var panelText = panel != null && panel != undefined ? panel.html() : '';
-    var legalText = legal != null && legal != undefined ? legal.html() : '';
-    if (panelText != '' || legalText != '') {
-        result = pdfsWithSpacesReplace('<div>' + panelText + '</div> <br/> <div>' + legalText + '</div>', pdfList);
-    }
+    //var pdfList = pdfsDownload(data, 'Specs')
+    var result = data.find('.product-view-sublock .specifications');
+    // var specifications = 
+    // var legal = data.find('#Specs .legal');
+    // var panelText = panel != null && panel != undefined ? panel.html() : '';
+    // var legalText = legal != null && legal != undefined ? legal.html() : '';
+    // if (panelText != '' || legalText != '') {
+    //     result = pdfsWithSpacesReplace('<div>' + panelText + '</div> <br/> <div>' + legalText + '</div>', pdfList);
+    // }
     return result;
 }
 var resourcesGet = function (data) {
@@ -462,11 +520,6 @@ function Product(category) {
     this.mainImage = "";
 }
 
-//start parsing 
-fillProductLinks(_ProductListUrl);
 
-// exports.ParseProduct = function(productLink) {
-//     var links = [];
-//     links.push(productLink);
-//     fillProductLinks(links);
-// }
+fillProductCategoriesLinks(_ProductListUrl);
+
