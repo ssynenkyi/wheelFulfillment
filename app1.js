@@ -14,8 +14,7 @@ var _emitter = new EventEmitter();
 var _Products = [];
 var _ProductsCount = 0;
 var _parsedImagesCount = 0;
-var _ProductImagesCount = []; 
-var _ProductListCount = 0;
+var _ProductImagesCount = [];
 var _ProductListUrl = "http://www.1800wheelchair.com/";
 var _lastPageReached = false;
 var _ProductUrls = [];
@@ -49,11 +48,11 @@ var fillProductCategoriesLinks = function (currentLink) {
 }
 
 _emitter.on('parseProductEvent', function () {
-    if(_ProductListCount < _ProductUrls.length)
+    if(_ProductUrls.length > 0)
     {
-        parseProduct(_ProductUrls[_ProductListCount]);
+        var el = _ProductUrls.shift();
+        parseProduct(el);
     }
-    _ProductListCount++;
 })
 
 var _parsedCategoriesCount = 0;
