@@ -6,7 +6,7 @@ var app = express();
 var http = require('http');
 //var excelWriter = require("./excelWriter.js");
 var pdfUtils = require("./pdfUtils");
-var csvWriter = require("./csvWriter.js");// add 2 to delete images
+var csvWriter = require("./csvWriter.js"); // add 2 to delete images
 var fileExists = require('file-exists');
 var EventEmitter = require('events').EventEmitter;
 //var Promise = require('Promise');
@@ -22,7 +22,8 @@ var _ProductCategoriesUrls = [];
 var _SubCategoriesUrls = [];
 var _lastImageParsedEmited = false;
 var _readyToBeEmit = false;
-var _repeatedCategoriesCount = 0
+var _repeatedCategoriesCount = 0;
+var nextPagePromises = [];
 var fillProductCategoriesLinks = function (currentLink) {
     request(currentLink, function (error, response, html) {
         if (!error) {
@@ -52,23 +53,33 @@ _emitter.on('theCategoryParsed', function () {
     var chunkVolume = 75;
 
     for (var i = 0; i < chunkVolume; i++) {
-        promises.push(fillProductLinks(_ProductCategoriesUrls[i] /*, true*/));
+        promises.push(fillProductLinks(_ProductCategoriesUrls[i]));
     }
     Promise.all(promises).then(values => {
         debugger;
         setTimeout(function () {
             promises = [];
             for (var i = chunkVolume; i < _ProductCategoriesUrls.length; i++) {
-                promises.push(fillProductLinks(_ProductCategoriesUrls[i] /*, true*/));
+                promises.push(fillProductLinks(_ProductCategoriesUrls[i]));
             }
             console.log('SECOND PART');
             Promise.all(promises).then(() => {
                 subcategoriesParse();
             }).then(values => {
                 debugger;
-                for (var i = 0; i < _ProductUrls.length; i++) {
-                    parseProduct(_ProductUrls[i]);
-                }
+                Promise.all(nextPagePromises).then(() => {
+
+                    // temporary timeout @Nazar
+                    setTimeout(function () {
+                        Promise.all(nextPagePromises).then(() => {
+                            
+                            for (var i = 0; i < _ProductUrls.length; i++) {
+
+                                parseProduct(_ProductUrls[i]);
+                            }
+                        })
+                    }, 5000);
+                })
             });
         }, 2000);
     });
@@ -85,9 +96,9 @@ var subcategoriesParse = function () {
 
 var _insideLinks = 0;
 var _isFirstPage = false;
-var fillProductLinks = function (currentLink/*, isFirstPage*/) {
+var fillProductLinks = function (currentLink, isFirstPage) {
     return new Promise(function (resolve, reject) {
-        request(currentLink, function (error, response, html) {
+        request(currentLink, function (error, response, html) {   
             _insideLinks++;
             console.log('fpl inside :' + _insideLinks);
             if (!error) {
@@ -96,31 +107,23 @@ var fillProductLinks = function (currentLink/*, isFirstPage*/) {
                 if ($productList && $productList.length > 0) {
                     $productList.filter(function () {
                         var data = $(this);
-                        var productsUrls = data.find('.product-name a');
+                        var productsUrls = data.find('.product-name a');                     
                         for (var i = 0; i < productsUrls.length; i++) {
                             var href = $(productsUrls[i]).attr('href');
                             if (_ProductUrls.indexOf(href) < 0) {
                                 _ProductUrls.push(href);
                             }
-
                         }
-                        //if (isFirstPage) {
                         _parsedCategoriesCount++;
                         console.log('parsed :' + _parsedCategoriesCount);
-                        //}                      
-                        // var nextPageUrl = '';
-                        // var $aNextPage = $('.pagination a.next i-next');
-                        // if ($aNextPage.length > 0) {
-                        //     nextPageUrl = $aNextPage.attr('href');
-                        // }
-                        // if (_parsedCategoriesCount == _ProductCategoriesUrls.length - 5) {
-                        //     debugger;
-                        // }
-                        // if (nextPageUrl != '') {
-                        //     fillProductLinks(nextPageUrl, false);
-                        // } else if (_parsedCategoriesCount == _ProductCategoriesUrls.length) {
-                        //     _emitter.emit('theLastPageLinksParsed');
-                        // }
+
+                        var $aNextPage = $('ul.pagination a.i-next');
+
+                        if ($aNextPage.length > 0) {
+                            var nextPageUrl = $aNextPage.attr('href');
+                            
+                            nextPagePromises.push(fillProductLinks(nextPageUrl, false));
+                        }
                     });
                 } else if (_SubCategoriesUrls.indexOf(currentLink) < 0) {
                     _SubCategoriesUrls.push(currentLink);
@@ -164,7 +167,7 @@ var parseProduct = exports.ParseProduct = function (url) {
     _parseProductCallCount++;
     request(url, function (error, response, html) {
         if (!error) {
-            parseDetails(html);           
+            parseDetails(html);
         }
         riseEventIfTheLastProduct();
     })
@@ -231,7 +234,7 @@ var parseDetails = function (html) {
         }
 
         product.name = cleanText(data.find('.product-name').text());
-        product.price = getFloat(data.find(".price").text());  
+        product.price = getFloat(data.find(".price").text());
         var panels = data.find(".product-view-sublock");
         for (var i = 0; i < panels.length; i++) {
             var panelHtml = $(panels[i]).html();
@@ -339,22 +342,22 @@ var pdfsDownload = function (data, containerId) {
     return pdfList;
 }
 var CheckIfContainsImage = function (html) {
-    if (html.indexOf('<img') >= 0) {
-        return
+        if (html.indexOf('<img') >= 0) {
+            return
+        }
     }
-}
-// var imgsDownload = function (data, containerId) {
-//     var anchers = data.find('#' + containerId + ' img');
-//     if (anchers.length > 0) {
-//         for (var i = 0; i < anchers.length; i++) {
-//             if (anchers[i].attribs != undefined &&
-//                 anchers[i].attribs.src != undefined &&
-//                 anchers[i].attribs.href.toLowerCase().indexOf(/pdfs/) == 0) {
-//                 pdfUtils.downloadFile(anchers[i].attribs.href);
-//             }
-//         }
-//     }
-// }
+    // var imgsDownload = function (data, containerId) {
+    //     var anchers = data.find('#' + containerId + ' img');
+    //     if (anchers.length > 0) {
+    //         for (var i = 0; i < anchers.length; i++) {
+    //             if (anchers[i].attribs != undefined &&
+    //                 anchers[i].attribs.src != undefined &&
+    //                 anchers[i].attribs.href.toLowerCase().indexOf(/pdfs/) == 0) {
+    //                 pdfUtils.downloadFile(anchers[i].attribs.href);
+    //             }
+    //         }
+    //     }
+    // }
 
 var cleanText = function (text) {
     if (text != null && text != undefined && text != '') {
@@ -495,7 +498,7 @@ var saveImage = function (uri, filepath) {
                     _emitter.emit("theLastImageParsed");
                 }
             });
-        }
+        } 
         catch (ex) {
             debugger;
         }
