@@ -77,6 +77,7 @@ var subcategoriesParse = function () {
         for (var i = 0; i < _ProductUrls.length; i++) {
             parseProduct(_ProductUrls[i]);//parse product.
         }
+        return;
     }
     var promises = [];
     var subCategories = [];
@@ -142,13 +143,9 @@ var fillProductLinks = function (currentLink/*, isFirstPage*/) {
                                     _SubCategoriesUrls.push(href);
                                 }
                             }
-                            //_parsedCategoriesCount++;
                             console.log('subcategory parsed');
                         });
-                        // _SubCategoriesUrls.push(currentLink);
-
                     }
-                    //_SubCategoriesUrls.push(currentLink);
 
                 }
             } else {
@@ -276,7 +273,6 @@ var parseDetails = function (html) {
         // product.resources = downloadAndSaveImage(cleanText(resourcesGet(data)));
         // product.description = downloadAndSaveImage(cleanText(descriptionGet(data)));
 
-        console.log("parsing product: " + product.name)
         saveProduct(product);
     });
 }
