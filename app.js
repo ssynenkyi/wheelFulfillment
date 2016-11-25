@@ -63,12 +63,7 @@ _emitter.on('theCategoryParsed', function () {
             }
             console.log('SECOND PART');
             Promise.all(promises).then(() => {
-                subcategoriesParse();
-            }).then(values => {
-                debugger;
-                for (var i = 0; i < _ProductUrls.length; i++) {
-                    parseProduct(_ProductUrls[i]);
-                }
+                subcategoriesParse();//i moved parseProduct() inside subcategoriesParse() 
             });
         }, 2000);
     });
@@ -78,9 +73,22 @@ _emitter.on('theCategoryParsed', function () {
 //var parseProducts = function
 var subcategoriesParse = function () {
     debugger;
-    for (var i = 0; i < _SubCategoriesUrls.length; i++) {
-        //todo slavik _SubCategoriesUrls
+    if (_SubCategoriesUrls.length === 0) {//if no subcategories,  parse all products
+        for (var i = 0; i < _ProductUrls.length; i++) {
+            parseProduct(_ProductUrls[i]);//parse product.
+        }
     }
+    var promises = [];
+    var subCategories = [];
+    subCategories = _SubCategoriesUrls;
+    _SubCategoriesUrls = [];//empty url array. next we going to push there new sub sub categories
+    for (var i = 0; i < subCategories.length; i++) {
+        promises.push(fillProductLinks(subCategories[i]));
+    }
+
+    Promise.all(promises).then(() => {
+        subcategoriesParse();
+    });
 }
 
 var _insideLinks = 0;
@@ -123,7 +131,25 @@ var fillProductLinks = function (currentLink/*, isFirstPage*/) {
                         // }
                     });
                 } else if (_SubCategoriesUrls.indexOf(currentLink) < 0) {
-                    _SubCategoriesUrls.push(currentLink);
+                    var $categoryList = $('.category-view');
+                    if ($categoryList && $categoryList.length > 0) {
+                        $categoryList.filter(function () {
+                            var data = $(this);
+                            var categoriesUrls = data.find('a.category-name');
+                            for (var i = 0; i < categoriesUrls.length; i++) {
+                                var href = $(categoriesUrls[i]).attr('href');
+                                if (_SubCategoriesUrls.indexOf(href) < 0) {
+                                    _SubCategoriesUrls.push(href);
+                                }
+                            }
+                            //_parsedCategoriesCount++;
+                            console.log('subcategory parsed');
+                        });
+                        // _SubCategoriesUrls.push(currentLink);
+
+                    }
+                    //_SubCategoriesUrls.push(currentLink);
+
                 }
             } else {
                 debugger;
@@ -164,7 +190,7 @@ var parseProduct = exports.ParseProduct = function (url) {
     _parseProductCallCount++;
     request(url, function (error, response, html) {
         if (!error) {
-            parseDetails(html);           
+            parseDetails(html);
         }
         riseEventIfTheLastProduct();
     })
@@ -231,7 +257,7 @@ var parseDetails = function (html) {
         }
 
         product.name = cleanText(data.find('.product-name').text());
-        product.price = getFloat(data.find(".price").text());  
+        product.price = getFloat(data.find(".price").text());
         var panels = data.find(".product-view-sublock");
         for (var i = 0; i < panels.length; i++) {
             var panelHtml = $(panels[i]).html();
@@ -250,6 +276,7 @@ var parseDetails = function (html) {
         // product.resources = downloadAndSaveImage(cleanText(resourcesGet(data)));
         // product.description = downloadAndSaveImage(cleanText(descriptionGet(data)));
 
+        console.log("parsing product: " + product.name)
         saveProduct(product);
     });
 }
