@@ -80,6 +80,9 @@ _emitter.on('theCategoryParsed', function () {
                 //     parseProduct(_ProductUrls[i]);
                 // }
                 _emitter.emit('parseProductEvent');
+// =======
+//                 subcategoriesParse();//i moved parseProduct() inside subcategoriesParse() 
+// >>>>>>> 5d3bcf6f6d64e971ff5cfdb6baf91d575569dbed
             });
         }, 2000);
     });
@@ -89,9 +92,23 @@ _emitter.on('theCategoryParsed', function () {
 //var parseProducts = function
 var subcategoriesParse = function () {
     debugger;
-    for (var i = 0; i < _SubCategoriesUrls.length; i++) {
-        //todo slavik _SubCategoriesUrls
+    if (_SubCategoriesUrls.length === 0) {//if no subcategories,  parse all products
+        for (var i = 0; i < _ProductUrls.length; i++) {
+            parseProduct(_ProductUrls[i]);//parse product.
+        }
+        return;
     }
+    var promises = [];
+    var subCategories = [];
+    subCategories = _SubCategoriesUrls;
+    _SubCategoriesUrls = [];//empty url array. next we going to push there new sub sub categories
+    for (var i = 0; i < subCategories.length; i++) {
+        promises.push(fillProductLinks(subCategories[i]));
+    }
+
+    Promise.all(promises).then(() => {
+        subcategoriesParse();
+    });
 }
 
 var _insideLinks = 0;
@@ -134,7 +151,21 @@ var fillProductLinks = function (currentLink/*, isFirstPage*/) {
                         // }
                     });
                 } else if (_SubCategoriesUrls.indexOf(currentLink) < 0) {
-                    _SubCategoriesUrls.push(currentLink);
+                    var $categoryList = $('.category-view');
+                    if ($categoryList && $categoryList.length > 0) {
+                        $categoryList.filter(function () {
+                            var data = $(this);
+                            var categoriesUrls = data.find('a.category-name');
+                            for (var i = 0; i < categoriesUrls.length; i++) {
+                                var href = $(categoriesUrls[i]).attr('href');
+                                if (_SubCategoriesUrls.indexOf(href) < 0) {
+                                    _SubCategoriesUrls.push(href);
+                                }
+                            }
+                            console.log('subcategory parsed');
+                        });
+                    }
+
                 }
             } else {
                 debugger;
@@ -175,7 +206,7 @@ var parseProduct = exports.ParseProduct = function (url) {
     _parseProductCallCount++;
     request(url, function (error, response, html) {
         if (!error) {
-            parseDetails(html);           
+            parseDetails(html);
         }
 
         var $ = cheerio.load(html);
@@ -254,7 +285,7 @@ var parseDetails = function (html) {
         }
 
         product.name = cleanText(data.find('.product-name').text());
-        product.price = getFloat(data.find(".price").text());  
+        product.price = getFloat(data.find(".price").text());
         var panels = data.find(".product-view-sublock");
         for (var i = 0; i < panels.length; i++) {
             var panelHtml = $(panels[i]).html();
