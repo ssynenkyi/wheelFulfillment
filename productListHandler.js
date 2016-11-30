@@ -69,6 +69,19 @@ var parseProductsLinks = function (productList, $) {
             }
         }
         //add pager logic here
+          // var nextPageUrl = '';
+                        // var $aNextPage = $('.pagination a.next i-next');
+                        // if ($aNextPage.length > 0) {
+                        //     nextPageUrl = $aNextPage.attr('href');
+                        // }
+                        // if (_parsedCategoriesCount == _ProductCategoriesUrls.length - 5) {
+                        //     debugger;
+                        // }
+                        // if (nextPageUrl != '') {
+                        //     fillProductLinks(nextPageUrl, false);
+                        // } else if (_parsedCategoriesCount == _ProductCategoriesUrls.length) {
+                        //     _emitter.emit('theLastPageLinksParsed');
+                        // }
     });
 }
 var parseCategories = function (categoryList, $) {
