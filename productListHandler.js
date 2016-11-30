@@ -50,7 +50,7 @@ exports.fillProductCategoriesLinks = function (currentLink, eventName) {
                     }
                 }
                 console.log(gp._ProductCategoriesUrls.length+" categories collected");
-                gp._emitter.emit('theCategoryParsed');
+                gp._emitter.emit(eventName);
             });
         }
     })
