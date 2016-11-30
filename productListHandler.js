@@ -36,21 +36,20 @@ exports.fillProductCategoriesLinks = function (currentLink, eventName) {
     request(currentLink, function (error, response, html) {
         if (!error) {
             var $ = cheerio.load(html);
-            $('.home').filter(function () {
+            $('.xsitemap-categories').filter(function () {
                 var data = $(this);
-                var productsUrls = data.find('.home-categories-text-area a');
+                var productsUrls = data.find('li a');
                 for (var i = 0; i < productsUrls.length; i++) {
                     var $url = $(productsUrls[i]);
-                    if (!$url.hasClass('read-more')) {
-                        var href = $url.attr('href');
-                        if (gp._ProductCategoriesUrls.indexOf(href) < 0) {
-                            gp._ProductCategoriesUrls.push(href);
-                        } else {
-                            //jast for test
-                            gp._RepeatedCategoriesCount++;
-                        }
+                    var href = $url.attr('href');
+                    if (gp._ProductCategoriesUrls.indexOf(href) < 0) {
+                        gp._ProductCategoriesUrls.push(href);
+                    } else {
+                        //jast for test
+                        gp._RepeatedCategoriesCount++;
                     }
                 }
+                console.log(gp._ProductCategoriesUrls.length+" categories collected");
                 gp._emitter.emit(eventName);
             });
         }

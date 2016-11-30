@@ -82,7 +82,7 @@ gp._emitter.on('theLastProductParsed', function () {
 });
 
 
-const _ProductListUrl = "http://www.1800wheelchair.com/";
+const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/";
 linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'FirstPageCategoryParsed');
 
 
