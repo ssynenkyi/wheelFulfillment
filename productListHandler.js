@@ -22,10 +22,13 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
                     parseCategories($categoryList, $)
                 }
             }
-            if (++_ParsedLinksCount == linksInChunkCount) {
-                _ParsedLinksCount = 0;
-                gp._emitter.emit(completedEventName)
+            if(linksInChunkCount != null && completedEventName !=null){
+                if (++_ParsedLinksCount == linksInChunkCount) {
+                    _ParsedLinksCount = 0;
+                    gp._emitter.emit(completedEventName)
+                }
             }
+            
         } else {
             debugger;
         }
@@ -67,6 +70,15 @@ var parseProductsLinks = function (productList, $) {
             if (gp._ProductUrls.indexOf(href) < 0) {
                 gp._ProductUrls.push(href);
             }
+        }
+        var nextPageUrl = $('.pagination li a.next.i-next');
+        var nextPageHref = '';
+        if(nextPageUrl.length>0){
+            nextPageHref = nextPageUrl.attr('href'); 
+        }
+        if(nextPageHref !==''){
+            //parse products
+            exports.handleLinks(nextPageHref, null, null);
         }
         //add pager logic here
           // var nextPageUrl = '';
