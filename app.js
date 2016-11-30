@@ -77,7 +77,7 @@ gp._emitter.on('theLastImageParsed', function () {
 
 gp._emitter.on('theLastProductParsed', function () {
     for (var i = 0; i < gp._Products.length; i++) {
-        iu.imagesDownload( gp._Products[i].productId);
+        iu.imagesDownload(gp._Products[i].productId);
     }
 });
 

@@ -68,6 +68,7 @@ var parseProductsLinks = function (productList, $) {
                 gp._ProductUrls.push(href);
             }
         }
+        //add pager logic here
     });
 }
 var parseCategories = function (categoryList, $) {
