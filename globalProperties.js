@@ -16,6 +16,7 @@ var _repeatedCategoriesCount= exports._repeatedCategoriesCount  = 0
 exports._RepeatedCategoriesCount = 0;
 exports._TotalResultsCount = 0;
 exports._ResultsWhereMoreThan5Pages = [];
+exports._listOfProductLinks = [];
 
 // var globalProper = function () {
 //     _emitter,

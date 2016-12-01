@@ -50,12 +50,16 @@ gp._emitter.on('categoriesParse', function () {
 gp._emitter.on('subCategoriesParse', function () {
     if (gp._SubCategoriesUrls.length > 0)
         subcategoriesParse('subCategoriesParse');
-    else
+    else {
+        // sort listOfProductLinks here
+        gp._listOfProductLinks.sort(() => {
+
+        });
         gp._emitter.emit('parseProduct');
+    }
 });
 
 var subcategoriesParse = function (eventName) {
-    debugger;
     if (gp._SubCategoriesUrls.length === 0) {
         gp._emitter.emit(eventName);
     } else {

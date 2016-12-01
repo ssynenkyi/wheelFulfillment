@@ -14,26 +14,21 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
             var $productList = $('#products-list');
             //if  there is product list on th page parce products list
             if ($productList && $productList.length > 0) {
-                /// added product result calculations
-                // var resultContent = $('.results');
-                // if (resultContent && resultContent.length > 0) {
-                //     var resultsString = resultContent.html().replace(' Result(s)', '');
-                //     var results = Number(resultsString);
-                //     // if (results && results > 0) {
-                //     //     gp._TotalResultsCount += results;
-                //     // }
-                //     // if (results > 120) {
-                //     //     gp._ResultsWhereMoreThan5Pages.push(results);
-                //     //     console.log('more than 120: ' + results + "current link: " + currentLink);
-                //     //     //console.log('')
-                //     // }
-                // }
-                ///
-                parseProductsLinks($productList, $)
+                var paginationLinks = $('.pagination li:not(.disabled) a:not(.next.i-next)');
 
+                gp._listOfProductLinks.push(currentLink);
+
+                if (paginationLinks.length > 0) {
+                    var paginationLinkTemplate = paginationLinks[0].attribs.href.split('?')[0];
+                    var lastPage = parseInt(paginationLinks[paginationLinks.length - 1].children[0].data);
+                    for (let i = 2; i <= lastPage; i++) {
+                        gp._listOfProductLinks.push(paginationLinkTemplate + '?p=' + i);
+                        //console.log(paginationLinkTemplate + '?p=' + i);
+                    }
+                }
             } else if (gp._SubCategoriesUrls.indexOf(currentLink) < 0) {
                 var $categoryList = $('.category-view');
-                //if there are categories on the page parse categories 
+                //if there are categories on the page parse categories
                 if ($categoryList && $categoryList.length > 0) {
                     parseCategories($categoryList, $)
                 }
@@ -43,9 +38,9 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
             if (linksInChunkCount != null && completedEventName != null) {
                 if (++_ParsedLinksCount == linksInChunkCount) {
                     _ParsedLinksCount = 0;
-                    gp._emitter.emit(completedEventName)
-                    console.log('total products: ' + gp._TotalResultsCount);
-                    console.log('total more than 120: ' + gp._ResultsWhereMoreThan5Pages);
+                    gp._emitter.emit(completedEventName);
+                    //console.log('total products: ' + gp._TotalResultsCount);
+                    //console.log('total more than 120: ' + gp._ResultsWhereMoreThan5Pages);
                 }
             }
 
