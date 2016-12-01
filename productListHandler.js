@@ -14,23 +14,41 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
             var $productList = $('#products-list');
             //if  there is product list on th page parce products list
             if ($productList && $productList.length > 0) {
-               // setTimeout(function(){
-                    parseProductsLinks($productList, $)
-               // }, 1000);  
+                /// added product result calculations
+                // var resultContent = $('.results');
+                // if (resultContent && resultContent.length > 0) {
+                //     var resultsString = resultContent.html().replace(' Result(s)', '');
+                //     var results = Number(resultsString);
+                //     // if (results && results > 0) {
+                //     //     gp._TotalResultsCount += results;
+                //     // }
+                //     // if (results > 120) {
+                //     //     gp._ResultsWhereMoreThan5Pages.push(results);
+                //     //     console.log('more than 120: ' + results + "current link: " + currentLink);
+                //     //     //console.log('')
+                //     // }
+                // }
+                ///
+                parseProductsLinks($productList, $)
+
             } else if (gp._SubCategoriesUrls.indexOf(currentLink) < 0) {
                 var $categoryList = $('.category-view');
                 //if there are categories on the page parse categories 
                 if ($categoryList && $categoryList.length > 0) {
                     parseCategories($categoryList, $)
                 }
+            } else {
+                console.log('Bad Link: ' + currentLink);
             }
-            if(linksInChunkCount != null && completedEventName !=null){
+            if (linksInChunkCount != null && completedEventName != null) {
                 if (++_ParsedLinksCount == linksInChunkCount) {
                     _ParsedLinksCount = 0;
                     gp._emitter.emit(completedEventName)
+                    console.log('total products: ' + gp._TotalResultsCount);
+                    console.log('total more than 120: ' + gp._ResultsWhereMoreThan5Pages);
                 }
             }
-            
+
         } else {
             debugger;
         }
@@ -54,7 +72,8 @@ exports.fillProductCategoriesLinks = function (currentLink, eventName) {
                         gp._RepeatedCategoriesCount++;
                     }
                 }
-                console.log(gp._ProductCategoriesUrls.length+" categories collected");
+                console.log(gp._ProductCategoriesUrls.length + " categories collected");
+                console.log(gp._RepeatedCategoriesCount + " repeated categories");
                 gp._emitter.emit(eventName);
             });
         }
@@ -73,21 +92,19 @@ var parseProductsLinks = function (productList, $) {
                 gp._ProductUrls.push(href);
             }
         }
-        //add pager logic here
-        //var nextPageUrl = $('.pagination li a.next.i-next');
+        //add pager logic here       
         nextPageUrl = $('.pagination li:not(.disabled) a:not(.next.i-next)');
         var nextPageHref = [];
-        if(nextPageUrl.length>0){
+        if (nextPageUrl.length > 0) {
             //nextPageHref = nextPageUrl.attr('href');
-            for(let i = 0;i<nextPageUrl.length;i++){
+            for (let i = 0; i < nextPageUrl.length; i++) {
                 nextPageHref.push(nextPageUrl[0].attribs.href);
             }
-             
         }
-        if(nextPageHref.length > 0){
+        if (nextPageHref.length > 0) {
             //parse products
             //exports.handleLinks(nextPageHref, null, null);
-            for(let i = 0; i<nextPageHref.length; i++){
+            for (let i = 0; i < nextPageHref.length; i++) {
                 gp._SubCategoriesUrls.push(nextPageHref[i]);
             }
         }

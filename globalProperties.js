@@ -13,6 +13,10 @@ var _lastImageParsedEmited = exports._lastImageParsedEmited= false;
 var _readyToBeEmit= exports._readyToBeEmit  = false;
 var _repeatedCategoriesCount= exports._repeatedCategoriesCount  = 0
 
+exports._RepeatedCategoriesCount = 0;
+exports._TotalResultsCount = 0;
+exports._ResultsWhereMoreThan5Pages = [];
+
 // var globalProper = function () {
 //     _emitter,
 //     _Products,

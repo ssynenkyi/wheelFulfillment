@@ -16,37 +16,53 @@ gp._emitter.on('parseProduct', function () {
     if (gp._ProductListCount < gp._ProductUrls.length) {
         productParser.parseProduct(gp._ProductUrls[gp._ProductListCount]);
     }
-    gp._ProductListCount++;   
+    gp._ProductListCount++;
 })
 
-var _chunkLinksCount = 75;
+var _chunkVolume = 75;
 
-gp._emitter.on('secondChunkParsed', function () {
-    subcategoriesParse('subCategoriesParsed');
+// //second part of categories 
+// gp._emitter.on('firstChunkParsed', function () {
+//     let restOfCategoriesCount = gp._ProductCategoriesUrls.length - _chunkLinksCount;
+//     for (var i = _chunkLinksCount; i < gp._ProductCategoriesUrls.length; i++) {
+//         linkHandler.handleLinks(gp._ProductCategoriesUrls[i], restOfCategoriesCount, 'secondChunkParsed');
+//     }
+// });
+
+// //first part of categories
+// gp._emitter.on('FirstPageCategoryParsed', function () {
+//     //first 75 lists of products parse
+//     for (var i = 0; i < _chunkLinksCount; i++) {
+//         linkHandler.handleLinks(gp._ProductCategoriesUrls[i], _chunkLinksCount, 'firstChunkParsed');
+//     }
+// });
+var _startUrl = 0;
+var _endUrl = _chunkVolume;
+
+gp._emitter.on('categoriesParse', function () {
+    let toCount = _endUrl < (gp._ProductCategoriesUrls.length - 1) ? _endUrl : (gp._ProductCategoriesUrls.length - 1);
+    //recurtion to the last chunk
+    let nextEventName = 'categoriesParse';
+    if (_endUrl < (gp._ProductCategoriesUrls.length - 1))
+        toCount = _endUrl;
+    else {
+        toCount = (gp._ProductCategoriesUrls.length - 1)
+        //if the last portion of categories
+        nextEventName = 'subCategoriesParse'
+    }
+    let volume = toCount - _startUrl;
+    for (let i = _startUrl; i < toCount; i++) {
+        linkHandler.handleLinks(gp._ProductCategoriesUrls[i], volume, nextEventName);
+    }
+    _startUrl += _chunkVolume;
+    _endUrl += _chunkVolume;
 });
 
-gp._emitter.on('subCategoriesParsed', function () {
+gp._emitter.on('subCategoriesParse', function () {
     if (gp._SubCategoriesUrls.length > 0)
-        subcategoriesParse('subCategoriesParsed');
+        subcategoriesParse('subCategoriesParse');
     else
-       gp._emitter.emit('parseProduct');
-});
-
-
-//second part of categories 
-gp._emitter.on('firstChunkParsed', function () {
-    let restOfCategoriesCount = gp._ProductCategoriesUrls.length - _chunkLinksCount;
-    for (var i = _chunkLinksCount; i < gp._ProductCategoriesUrls.length; i++) {
-        linkHandler.handleLinks(gp._ProductCategoriesUrls[i], restOfCategoriesCount, 'secondChunkParsed');
-    }
-});
-
-//first part of categories
-gp._emitter.on('FirstPageCategoryParsed', function () {
-    //first 75 lists of products parse
-    for (var i = 0; i < _chunkLinksCount; i++) {
-        linkHandler.handleLinks(gp._ProductCategoriesUrls[i], _chunkLinksCount, 'firstChunkParsed');
-    }
+        gp._emitter.emit('parseProduct');
 });
 
 var subcategoriesParse = function (eventName) {
@@ -62,15 +78,15 @@ var subcategoriesParse = function (eventName) {
     }
 }
 
-gp._emitter.on('theLastPageLinksParsed', function () {
-    for (var i = 0; i < gp._ProductUrls.length; i++) {
-       productParser.parseProduct(gp._ProductUrls[i]);
-    }
-})
+// gp._emitter.on('theLastPageLinksParsed', function () {
+//     for (var i = 0; i < gp._ProductUrls.length; i++) {
+//         productParser.parseProduct(gp._ProductUrls[i]);
+//     }
+// })
 
 
 gp._emitter.on('theLastImageParsed', function () {
-    csvWriter.writeCsv( gp._Products, 'result');
+    csvWriter.writeCsv(gp._Products, 'result');
 });
 
 
@@ -83,7 +99,7 @@ gp._emitter.on('theLastProductParsed', function () {
 
 
 const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/";
-linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'FirstPageCategoryParsed');
+linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
 
 
 // var pdfsWithSpacesReplace = function (html, pdfLinks) {
