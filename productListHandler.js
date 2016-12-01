@@ -8,19 +8,21 @@ var reqCount = 0;
 var doneLinks = [];
 
 exports.handleLinks = function (currentLink, linksInChunkCount, completedEventName) {
-    if (doneLinks.indexOf(currentLink) > 0) {
-        console.log('=======link done before====');
-        return;
-    }
-    console.log('before request');
+    request(currentLink, function (error, response, html) {
+    console.log('completedEventName: ' + completedEventName);
+    //if (doneLinks.indexOf(currentLink) > 0) {
+    //    console.log('=======link done before====');
+    //    return;
+    //}
+    //console.log('before request');
     console.log('link: ' + currentLink);
-    var response = syncRequest('GET', currentLink);
+    //var response = syncRequest('GET', currentLink);
     doneLinks.push(currentLink);
     console.log('links done: ', doneLinks.length);
     console.log('after request');
     reqCount++;
     console.log('===requests count ' + reqCount);
-    var html = response.getBody('utf-8');
+    //var html = response.getBody('utf-8');
     console.log('html parsed');
     var $ = cheerio.load(html);
     var $productList = $('#products-list');
@@ -40,6 +42,7 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
             gp._emitter.emit(completedEventName)
         }
     }
+    })
 }
 
 exports.fillProductCategoriesLinks = function (currentLink, eventName) {
@@ -86,13 +89,15 @@ var parseProductsLinks = function (productList, $) {
         }
         //add pager logic here
         //var nextPageUrl = $('.pagination li a.next.i-next');
+
         var paginationLinks = $('.pagination li:not(.disabled) a:not(.next.i-next)');
         var nextPageHref = [];
         if (paginationLinks.length > 0) {
             var paginationLinkTemplate = paginationLinks[0].attribs.href.split('?')[0];
-            var lastPage = parseInt(paginationLinks[paginationLinks.length - 1].text);
+            var lastPage = parseInt(paginationLinks[paginationLinks.length - 1].children[0].data);
             for (let i = 2; i <= lastPage; i++) {
                 nextPageHref.push(paginationLinkTemplate + '?p=' + i);
+                console.log(paginationLinkTemplate + '?p=' + i);
             }
         }
 
