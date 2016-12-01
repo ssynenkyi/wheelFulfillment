@@ -18,7 +18,7 @@ exports.parseProduct = function (url) {
             console.log("not here " + url);        
 
         if (gp._Products.length == gp._ProductUrls.length 
-           || gp._Products.length >= 20 // just for test
+           //|| gp._Products.length >= 20 // just for test
          ) {
             gp._emitter.emit('theLastProductParsed');
         } else {

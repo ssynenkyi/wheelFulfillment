@@ -14,7 +14,9 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
             var $productList = $('#products-list');
             //if  there is product list on th page parce products list
             if ($productList && $productList.length > 0) {
-                parseProductsLinks($productList, $)
+               // setTimeout(function(){
+                    parseProductsLinks($productList, $)
+               // }, 1000);  
             } else if (gp._SubCategoriesUrls.indexOf(currentLink) < 0) {
                 var $categoryList = $('.category-view');
                 //if there are categories on the page parse categories 
@@ -22,10 +24,13 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
                     parseCategories($categoryList, $)
                 }
             }
-            if (++_ParsedLinksCount == linksInChunkCount) {
-                _ParsedLinksCount = 0;
-                gp._emitter.emit(completedEventName)
+            if(linksInChunkCount != null && completedEventName !=null){
+                if (++_ParsedLinksCount == linksInChunkCount) {
+                    _ParsedLinksCount = 0;
+                    gp._emitter.emit(completedEventName)
+                }
             }
+            
         } else {
             debugger;
         }
@@ -64,23 +69,28 @@ var parseProductsLinks = function (productList, $) {
         for (var i = 0; i < productsUrls.length; i++) {
             var href = $(productsUrls[i]).attr('href');
             if (gp._ProductUrls.indexOf(href) < 0) {
+                console.log('product inserted: ' + href);
                 gp._ProductUrls.push(href);
             }
         }
         //add pager logic here
-          // var nextPageUrl = '';
-                        // var $aNextPage = $('.pagination a.next i-next');
-                        // if ($aNextPage.length > 0) {
-                        //     nextPageUrl = $aNextPage.attr('href');
-                        // }
-                        // if (_parsedCategoriesCount == _ProductCategoriesUrls.length - 5) {
-                        //     debugger;
-                        // }
-                        // if (nextPageUrl != '') {
-                        //     fillProductLinks(nextPageUrl, false);
-                        // } else if (_parsedCategoriesCount == _ProductCategoriesUrls.length) {
-                        //     _emitter.emit('theLastPageLinksParsed');
-                        // }
+        //var nextPageUrl = $('.pagination li a.next.i-next');
+        nextPageUrl = $('.pagination li:not(.disabled) a:not(.next.i-next)');
+        var nextPageHref = [];
+        if(nextPageUrl.length>0){
+            //nextPageHref = nextPageUrl.attr('href');
+            for(let i = 0;i<nextPageUrl.length;i++){
+                nextPageHref.push(nextPageUrl[0].attribs.href);
+            }
+             
+        }
+        if(nextPageHref.length > 0){
+            //parse products
+            //exports.handleLinks(nextPageHref, null, null);
+            for(let i = 0; i<nextPageHref.length; i++){
+                gp._SubCategoriesUrls.push(nextPageHref[i]);
+            }
+        }
     });
 }
 var parseCategories = function (categoryList, $) {
