@@ -80,6 +80,25 @@ var parseDetails = function (html) {
             }
         }
 
+        // getting all images of current product
+        const images = data.find('#more-view-thumbs a'),
+            maxCountOfImages = 5;
+
+        for (let i in images) {
+            let lengthOfProductImages = product.images.length,
+                imageAttributes = images[i].attribs;
+
+            if (images.hasOwnProperty(i)) {
+                if (imageAttributes && imageAttributes['data-image']
+                            && lengthOfProductImages <= maxCountOfImages) {
+                    product.images.push(imageAttributes ['data-image']);
+                }
+            }
+        }
+
+        // temporal list for saved images
+        product.savedImages = [];
+
         product.name = cleanText(data.find('.product-name').text());
         product.price = getFloat(data.find(".price").text());
         var panels = data.find(".product-view-sublock");
