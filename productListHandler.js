@@ -14,9 +14,9 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
             var $productList = $('#products-list');
             //if  there is product list on th page parce products list
             if ($productList && $productList.length > 0) {
-                setTimeout(function(){
+               // setTimeout(function(){
                     parseProductsLinks($productList, $)
-                }, 1000);  
+               // }, 1000);  
             } else if (gp._SubCategoriesUrls.indexOf(currentLink) < 0) {
                 var $categoryList = $('.category-view');
                 //if there are categories on the page parse categories 
