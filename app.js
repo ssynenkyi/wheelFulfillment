@@ -19,28 +19,16 @@ gp._emitter.on('parseProduct', function () {
     gp._ProductListCount++;
 })
 
-var _chunkVolume = 75;
+//var _chunkVolume = 75;
 
-// //second part of categories 
-// gp._emitter.on('firstChunkParsed', function () {
-//     let restOfCategoriesCount = gp._ProductCategoriesUrls.length - _chunkLinksCount;
-//     for (var i = _chunkLinksCount; i < gp._ProductCategoriesUrls.length; i++) {
-//         linkHandler.handleLinks(gp._ProductCategoriesUrls[i], restOfCategoriesCount, 'secondChunkParsed');
-//     }
-// });
+var _chunkVolume = 1;
 
-// //first part of categories
-// gp._emitter.on('FirstPageCategoryParsed', function () {
-//     //first 75 lists of products parse
-//     for (var i = 0; i < _chunkLinksCount; i++) {
-//         linkHandler.handleLinks(gp._ProductCategoriesUrls[i], _chunkLinksCount, 'firstChunkParsed');
-//     }
-// });
+
 var _startUrl = 0;
 var _endUrl = _chunkVolume;
 
 gp._emitter.on('categoriesParse', function () {
-    let toCount = _endUrl < (gp._ProductCategoriesUrls.length - 1) ? _endUrl : (gp._ProductCategoriesUrls.length - 1);
+    let toCount = 0
     //recurtion to the last chunk
     let nextEventName = 'categoriesParse';
     if (_endUrl < (gp._ProductCategoriesUrls.length - 1))
@@ -50,6 +38,7 @@ gp._emitter.on('categoriesParse', function () {
         //if the last portion of categories
         nextEventName = 'subCategoriesParse'
     }
+    nextEventName = 'subCategoriesParse'
     let volume = toCount - _startUrl;
     for (let i = _startUrl; i < toCount; i++) {
         linkHandler.handleLinks(gp._ProductCategoriesUrls[i], volume, nextEventName);
