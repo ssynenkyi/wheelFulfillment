@@ -2,6 +2,10 @@ var fs = require('fs');
 var cheerio = require("cheerio");
 var fileExists = require('file-exists');
 
+const http = require('http'),
+    parseUrl = require('url').parse,
+    getBaseName = require('path').basename,
+    gp = require('./globalProperties');
 
 exports.downloadAndSaveImage = function (text) {
     
@@ -96,25 +100,51 @@ var downloadBigImage = function (zoomUrl) {
         }
     });
 }
-var _downloadStartedCount = 0;
-var _downloadCompletedCount = 0;
-var saveImage = function (uri, filepath) {
-    if (!fileExists(filepath)) {
-        _downloadStartedCount++;
-        var file = fs.createWriteStream(filepath);
-        try {
-            var request = http.get("http://www.cpapsupplyusa.com" + uri, function (response) {
-                response.pipe(file);
-                _downloadCompletedCount++;
-                if (!_lastImageParsedEmited && _readyToBeEmit) {
-                    _lastImageParsedEmited = true;
-                    _emitter.emit("theLastImageParsed");
-                }
-            });
-        }
-        catch (ex) {
-            debugger;
-        }
+
+// Part for downloading all images for current product
+
+let countOfDownloadedImages = 0;
+
+exports.downloadImagesForProduct = product => {
+    downloadImages(product.productId, product.images);
+};
+
+function downloadImages(productId, urls) {
+    urls.forEach(url => {
+        const parsed = parseUrl(url),
+            time = Math.floor(Date.now() / 1000),
+            title = getBaseName(parsed.pathname),
+            hashed = `${time}-${title}`,
+            path = `./images/${hashed}`;
+
+        saveImage(productId, url, path);
+    });
+}
+
+function saveImage(productId, url, path) {
+    function confirmImageDownloading() {
+        countOfDownloadedImages += 1;
+        gp._emitter.emit('theImageWasDownloaded', {
+            path,
+            productId,
+            countOfDownloadedImages
+        });
+    }
+
+    if (!fileExists(path)) {
+        let file = fs.createWriteStream(path);
+
+        http.get(url, res => {
+            res.on('close', () => {});
+            res.on('error', err => { console.log(err); });
+
+            res.pipe(file);
+
+            confirmImageDownloading();
+        });
+    } else {
+        confirmImageDownloading();
     }
 }
 
+// end of Part
