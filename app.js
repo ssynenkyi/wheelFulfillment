@@ -55,7 +55,6 @@ gp._emitter.on('subCategoriesParse', function () {
 });
 
 var subcategoriesParse = function (eventName) {
-    debugger;
     if (gp._SubCategoriesUrls.length === 0) {
         gp._emitter.emit(eventName);
     } else {
