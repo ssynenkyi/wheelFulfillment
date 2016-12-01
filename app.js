@@ -73,8 +73,6 @@ gp._emitter.on('theLastImageParsed', function () {
     csvWriter.writeCsv( gp._Products, 'result');
 });
 
-
-
 gp._emitter.on('theLastProductParsed', function () {
     for (var i = 0; i < gp._Products.length; i++) {
         iu.imagesDownload(gp._Products[i].productId);
@@ -86,54 +84,4 @@ const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/"
 linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'FirstPageCategoryParsed');
 
 
-// var pdfsWithSpacesReplace = function (html, pdfLinks) {
-//     if (pdfLinks.length > 0) {
-//         for (var i = 0; i < pdfLinks.length; i++) {
-//             if (pdfLinks[i].indexOf('/pdfs/') < 0) {
-//                 var newLink = '/pdfs/' + pdfLinks[i].substring(6, pdfLinks[i].trim().length);
-//                 html = html.replace(pdfLinks[i], newLink);
-//                 pdfLinks[i] = newLink;
-//             }
-//             if (pdfLinks[i].indexOf('%20') >= 0) {
-//                 var newLink = pdfLinks[i].replace(new RegExp('%20', 'g'), '_');
-//                 html = html.replace(pdfLinks[i], newLink);
-//             }
-//         }
-//     }
-//     return html;
-// }
-// var descriptionGet = function (data) {
-//     var pdfList = pdfsDownload(data, 'Desc');
-//     var desc = data.find('span[id$="_lblDescription"]');
-//     if (desc != undefined && desc.length > 0) {
-//         var result = pdfsWithSpacesReplace(desc.html(), pdfList);
-//         return result;
-//     }
-//     return '';
-// }
-
-// var pdfsDownload = function (data, containerId) {
-//     var pdfList = []
-//     var anchers = data.find('#' + containerId + ' a');
-//     if (anchers.length > 0) {
-//         for (var i = 0; i < anchers.length; i++) {
-//             if (anchers[i].attribs != undefined &&
-//                 anchers[i].attribs.href != undefined &&
-//                 anchers[i].attribs.href.toLowerCase().indexOf(/pdfs/) == 0) {
-//                 pdfUtils.downloadFile(anchers[i].attribs.href);
-//                 pdfList.push(anchers[i].attribs.href);
-//             }
-//         }
-//     }
-//     return pdfList;
-// }
-
-
-
-// var isFloat = function (n) {
-//     if (n == '')
-//         return false;
-//     n = n.replace('$', '').trim();
-//     return Number(n) == n;
-// }
 
