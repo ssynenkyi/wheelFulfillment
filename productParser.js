@@ -53,7 +53,7 @@ var getProduct = function (productId) {
 
 var parseDetails = function (html) {
     var $ = cheerio.load(html);
-
+    
     $('#product_addtocart_form').filter(function () {
         var data = $(this);
         //var product = parseDetails(data);  
@@ -61,7 +61,11 @@ var parseDetails = function (html) {
         // if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
         //     category = 'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';
         // }
-        var product = new Product(category);
+
+        var subCategories = $('header .breadcrumb li a');
+        var productCategory = subCategories[subCategories.length - 2].attribs.title;
+
+        var product = new Product(productCategory);
 
         var paragrarphs = data.find("#product-details-tab .basic-information p");
         for (var i = 0; i < paragrarphs.length; i++) {
