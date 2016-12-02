@@ -15,6 +15,7 @@ var Product = function (category) {
     this.brand = "";
     this.images = [];
     this.mainImage = "";
+    this.productUrl = ""
 }
 
 

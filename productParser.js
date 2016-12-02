@@ -8,7 +8,7 @@ var _parsedProducts = 0;
 exports.parseProduct = function (url, volume, eventName) {
     request(url, function (error, response, html) {
         if (!error) {
-            parseDetails(html);
+            parseDetails(html, url);
         } else {
             debugger;
         }
@@ -50,7 +50,7 @@ var getProduct = function (productId) {
     }
 }
 
-var parseDetails = function (html) {
+var parseDetails = function (html, url) {
     var $ = cheerio.load(html);
 
     $('#product_addtocart_form').filter(function () {
@@ -91,6 +91,7 @@ var parseDetails = function (html) {
                 }
             }
         }
+        product.mainImage = product.images.length > 0 ? product.images[0] : '';
 
         // temporal list for saved images
         product.savedImages = [];
@@ -111,6 +112,7 @@ var parseDetails = function (html) {
                 product.specifications = panelHtml;
             }
         }
+        product.productUrl = url;
 
         saveProduct(product);
     });
