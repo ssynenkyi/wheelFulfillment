@@ -176,11 +176,13 @@ function oneProductRowsPrepare(product) {
         rows.push(row);
         iteration++;
     }
-    var firstImage = '';
-    product.images = resortImages(product);
-    if (product.images && product.images.length > 0) {
-        firstImage = '/' + product.images[0];
-    }
+    var firstImage = removePrefix(product.mainImage);
+    for (let i = 0; i < product.images.length; i++)
+       product.images[i] = removePrefix(product.images[i]);
+
+    // if (product.images && product.images.length > 0) {
+    //     firstImage = removePrefix(product.mainImage);
+    // }
     // var imagesList = '';
 
     var url_key = urlKeyGet(product.productUrl);
@@ -373,7 +375,7 @@ exports.writeCsv = function (products, fileName) {
     writeFile(data, fileName);
 }
 
-var resortImages = function (product) {
+var removePrefix = function (image) {
     if (product.productId == '46f3b86a-9eba-415e-ae6e-76bb6725a506') {
         debugger;
     }
@@ -384,5 +386,6 @@ var resortImages = function (product) {
             result.push(product.images[index]);
         }
     }
-    return result;
+    return image.split('./images')[1];
 }
+

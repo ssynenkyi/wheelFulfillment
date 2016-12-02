@@ -31,7 +31,7 @@ gp._emitter.on('parseProduct', function () {
 
 gp._emitter.on('writeCsv', function(){
     jsonHandler.write('./files/imageObjects.txt', gp._ListOfImageUrls, 'Image objects were successfully saved.');
-    //csvWriter.writeCsv(gp._Products, 'result')
+    csvWriter.writeCsv(gp._Products, 'result')
 });
 
 var parse = function (productUrl, volume, nextEventName) {
