@@ -7,8 +7,8 @@ var getBaseName = require('path').basename;
 
 var _parsedProducts = 0;
 
-exports.parseProduct = function (url, volume, eventName, categoryUrl) {
-    request(url, function (error, response, html) {
+exports.parseProduct = function(url, volume, eventName, categoryUrl) {
+    request(url, function(error, response, html) {
         if (!error) {
             parseDetails(html, url);
             addCategoryName(categoryUrl);
@@ -22,14 +22,14 @@ exports.parseProduct = function (url, volume, eventName, categoryUrl) {
         else
             console.log("not here " + url);
 
-            if (++_parsedProducts ==  volume){
-                _parsedProducts = 0;
-                gp._emitter.emit(eventName);
-            }
+        if (++_parsedProducts == volume) {
+            _parsedProducts = 0;
+            gp._emitter.emit(eventName);
+        }
     })
 }
 
-var saveProduct = function (productObj) {
+var saveProduct = function(productObj) {
     var updateExistingProduct = false;
     if (gp._Products.length > 0) {
         for (i = 0; i < gp._Products.length; i++) {
@@ -43,7 +43,7 @@ var saveProduct = function (productObj) {
         gp._Products.push(productObj);
     }
 }
-var getProduct = function (productId) {
+var getProduct = function(productId) {
     if (gp._Products.length > 0) {
         for (i = 0; i < gp._Products.length; i++) {
             if (gp._Products[i].productId == productId) {
@@ -53,10 +53,10 @@ var getProduct = function (productId) {
     }
 }
 
-var parseDetails = function (html, url) {
+var parseDetails = function(html, url) {
     var $ = cheerio.load(html);
 
-    $('#product_addtocart_form').filter(function () {
+    $('#product_addtocart_form').filter(function() {
         var data = $(this);
         //var product = parseDetails(data);
         var category = 'Weel Cair';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
@@ -75,6 +75,9 @@ var parseDetails = function (html, url) {
             if (paragraphHtml.indexOf('brand') > -1) {
                 $j = cheerio.load(paragraphHtml);
                 product.brand = $j('span').html();
+                if (!gp._Brands.includes(product.brand)) {
+                    gp._Brands.push(product.brand);
+                }
             }
             if (paragraphHtml.indexOf('item #') > -1) {
                 $j = cheerio.load(paragraphHtml);
@@ -92,8 +95,8 @@ var parseDetails = function (html, url) {
 
             if (images.hasOwnProperty(i)) {
                 if (imageAttributes && imageAttributes['data-image']
-                            && lengthOfProductImages <= maxCountOfImages) {
-                    let oldUrl = imageAttributes ['data-image'],
+                    && lengthOfProductImages <= maxCountOfImages) {
+                    let oldUrl = imageAttributes['data-image'],
                         newUrl = getNewUrlForImage(oldUrl);
 
                     if (i == 0) {
@@ -136,15 +139,15 @@ var parseDetails = function (html, url) {
 
 function getNewUrlForImage(url) {
     const parsed = parseUrl(url),
-            time = Math.floor(Date.now() / 1000),
-            title = getBaseName(parsed.pathname),
-            hashed = `${time}-${title}`,
-            path = `./images/${hashed}`;
+        time = Math.floor(Date.now() / 1000),
+        title = getBaseName(parsed.pathname),
+        hashed = `${time}-${title}`,
+        path = `./images/${hashed}`;
 
     return path;
 }
 
-var cleanText = function (text) {
+var cleanText = function(text) {
     if (text != null && text != undefined && text != '') {
         if (text.indexOf('/MediaPlayer.aspx?') >= 0) {
             text = text.replace(new RegExp('href="/MediaPlayer.aspx?', 'g'), 'style = "display:none" href="/MediaPlayer.aspx?');
@@ -167,7 +170,7 @@ var cleanText = function (text) {
     return '';
 }
 
-var getFloat = function (strPrice) {
+var getFloat = function(strPrice) {
     var result = 0;
     if (strPrice != '') {
         result = parseFloat(strPrice.replace('$', '').replace(',', '').trim());
@@ -175,7 +178,7 @@ var getFloat = function (strPrice) {
     return result;
 }
 
-var addCategoryName = function (urlObj) {
+var addCategoryName = function(urlObj) {
     var urlPropArray = urlObj.pathname.split('/').filter(s => s != '');
     if (urlPropArray[0] === 'category') {
         //last parameter split by '-', make every first letter uppercase, join splitted array  with ' '
