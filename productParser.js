@@ -7,10 +7,11 @@ var getBaseName = require('path').basename;
 
 var _parsedProducts = 0;
 
-exports.parseProduct = function (url, volume, eventName) {
+exports.parseProduct = function (url, volume, eventName, categoryUrl) {
     request(url, function (error, response, html) {
         if (!error) {
             parseDetails(html, url);
+            addCategoryName(categoryUrl);
         } else {
             debugger;
         }
@@ -172,4 +173,15 @@ var getFloat = function (strPrice) {
         result = parseFloat(strPrice.replace('$', '').replace(',', '').trim());
     }
     return result;
+}
+
+var addCategoryName = function (urlObj) {
+    var urlPropArray = urlObj.pathname.split('/').filter(s => s != '');
+    if (urlPropArray[0] === 'category') {
+        //last parameter split by '-', make every first letter uppercase, join splitted array  with ' '
+        var categoryName = urlPropArray[urlPropArray.length - 1].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+        if (!gp._CategoriesNames.includes(categoryName)) {
+            gp._CategoriesNames.push(categoryName);
+        }
+    }
 }

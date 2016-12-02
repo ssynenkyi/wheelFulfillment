@@ -3,12 +3,14 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
 var csvWriter = require("./csvWriter.js");// add 2 to delete images
+var linkHandler = require('./productListHandler');
 var Product = require('./Product.js').Product
 var gp = require('./globalProperties')
 var productParser = require('./productParser')
 const iu = require('./imageUtils');
 const csvReader = require('./csvReader');
 const fs = require('fs');
+const url = require('url');
 const jsonHandler = require('./jsonHandler');
 
 var readProductsLinks = function (eventName) {
@@ -17,11 +19,12 @@ var readProductsLinks = function (eventName) {
 
 var _parsedCategory = 0;
 gp._emitter.on('parseProduct', function () {
-    if (_parsedCategory < gp._ProductsUrlObject.length && _parsedCategory <= 2 ) {
+    if (_parsedCategory < gp._ProductsUrlObject.length) {
         for (let i = 0; i < gp._ProductsUrlObject[_parsedCategory].products.length; i++) {
             let volume = gp._ProductsUrlObject[_parsedCategory].products.length;
             let productLink = gp._ProductsUrlObject[_parsedCategory].products[i];
-            productParser.parseProduct(productLink, volume, 'parseProduct');
+            let categoryUrl = url.parse(gp._ProductsUrlObject[i].caregory, true, true);
+            productParser.parseProduct(productLink, volume, 'parseProduct', categoryUrl);
         }
         _parsedCategory++;
     } else {
@@ -30,7 +33,10 @@ gp._emitter.on('parseProduct', function () {
 });
 
 gp._emitter.on('writeCsv', function(){
+    console.log(gp._CategoriesNames);
+    console.log(gp._CategoriesNames.length);
     jsonHandler.write('./files/imageObjects.txt', gp._ListOfImageUrls, 'Image objects were successfully saved.');
+    fs.writeFileSync('files/categoriesNames.csv', gp._CategoriesNames.join(','), 'utf-8');
     //csvWriter.writeCsv(gp._Products, 'result')
 });
 
@@ -54,7 +60,18 @@ readProductsLinks();
 //     }
 // });
 
-
+// var subcategoriesParse = function (eventName) {
+//     //debugger;
+//     if (gp._SubCategoriesUrls.length === 0) {
+//         gp._emitter.emit(eventName);
+//     } else {
+//         let subCategories = gp._SubCategoriesUrls;
+//         gp._SubCategoriesUrls = [];
+//         for (var i = 0; i < subCategories.length; i++) {
+//             linkHandler.handleLinks(subCategories[i], subCategories.length, eventName)
+//         }
+//     }
+// }
 
 // // gp._emitter.on('theLastPageLinksParsed', function () {
 // //     for (var i = 0; i < gp._ProductUrls.length; i++) {
