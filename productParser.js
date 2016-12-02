@@ -3,27 +3,26 @@ var cheerio = require('cheerio')
 var Product = require('./Product.js')
 var gp = require('./globalProperties')
 
+var _parsedProducts = 0;
 
-exports.parseProduct = function (url) {
-    //_parseProductCallCount++;
+exports.parseProduct = function (url, volume, eventName) {
     request(url, function (error, response, html) {
         if (!error) {
             parseDetails(html);
+        } else {
+            debugger;
         }
         //for test
         var $ = cheerio.load(html);
         if ($('#product-view-tab').length > 0)
             console.log(gp._Products.length);
         else
-            console.log("not here " + url);        
+            console.log("not here " + url);   
 
-        if (gp._Products.length == gp._ProductUrls.length 
-           //|| gp._Products.length >= 20 // just for test
-         ) {
-            gp._emitter.emit('theLastProductParsed');
-        } else {
-           gp._emitter.emit('parseProduct');
-        }
+            if (++_parsedProducts ==  volume){
+                _parsedProducts = 0;
+                gp._emitter.emit(eventName);
+            }
     })
 }
 

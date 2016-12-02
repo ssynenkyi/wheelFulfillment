@@ -1,8 +1,30 @@
+const gp = require('./globalProperties.js')
+const fs = require("fs")
+const csv = require('csv');
+
 var writeFile = function (rowList, fileName) {
     var csv = require('csv');
     var obj = csv();
-    obj.from.array(rowList).to.path('result1/' + fileName + '.csv');
-    console.log('result1/' + fileName + '.csv');
+    obj.from.array(rowList).to.path('result/' + fileName + '.csv');
+    console.log('result/' + fileName + '.csv');
+}
+
+exports.writeLinksToCsv = function (links, fileName) {
+    fs.writeFile('files/' + fileName, links.join(','), function (err) {
+        if (err) {
+            debugger;
+            var e = err;
+        }
+    });
+}
+
+exports.writeProductsUtls = function (urlObjects) {
+    fs.writeFile('files/urlObjects.txt', JSON.stringify(urlObjects), function (err) {
+        if (err) {
+            debugger;
+            var e = err;
+        }
+    });
 }
 
 //module.exports.csvFileWrite = csvFileWrite;
@@ -349,7 +371,7 @@ var resortImages = function (product) {
     if (product.productId == '46f3b86a-9eba-415e-ae6e-76bb6725a506') {
         debugger;
     }
-    var result = []; 
+    var result = [];
     result.push(product.mainImage);
     for (var index = 0; index < product.images.length; index++) {
         if (result.indexOf(product.images[index]) < 0) {

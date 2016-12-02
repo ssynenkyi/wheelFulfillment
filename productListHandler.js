@@ -7,30 +7,25 @@ var _ParsedLinksCount = 0;
 
 exports.handleLinks = function (currentLink, linksInChunkCount, completedEventName) {
     request(currentLink, function (error, response, html) {
-        //_insideLinks++;
-        //console.log('fpl inside :' + _insideLinks);
         if (!error) {
             var $ = cheerio.load(html);
             var $productList = $('#products-list');
             //if  there is product list on th page parce products list
             if ($productList && $productList.length > 0) {
-                /// added product result calculations
-                // var resultContent = $('.results');
-                // if (resultContent && resultContent.length > 0) {
-                //     var resultsString = resultContent.html().replace(' Result(s)', '');
-                //     var results = Number(resultsString);
-                //     // if (results && results > 0) {
-                //     //     gp._TotalResultsCount += results;
-                //     // }
-                //     // if (results > 120) {
-                //     //     gp._ResultsWhereMoreThan5Pages.push(results);
-                //     //     console.log('more than 120: ' + results + "current link: " + currentLink);
-                //     //     //console.log('')
-                //     // }
-                // }
-                ///
-                parseProductsLinks($productList, $)
-
+                if (gp._ListOfProductLinks.indexOf(currentLink) < 0) {
+                    gp._ListOfProductLinks.push(currentLink);
+                }
+                var paginationLinks = $('.pagination li:not(.disabled) a:not(.next.i-next)');
+                if (paginationLinks.length > 0) {
+                    var paginationLinkTemplate = paginationLinks[0].attribs.href.split('?')[0];
+                    var lastPage = parseInt(paginationLinks[paginationLinks.length - 1].children[0].data);
+                    for (let i = 2; i <= lastPage; i++) {
+                        let newLink = paginationLinkTemplate + '?p=' + i;
+                        if (gp._ListOfProductLinks.indexOf(newLink) < 0) {
+                            gp._ListOfProductLinks.push(newLink);
+                        }
+                    }
+                }
             } else if (gp._SubCategoriesUrls.indexOf(currentLink) < 0) {
                 var $categoryList = $('.category-view');
                 //if there are categories on the page parse categories 
@@ -38,19 +33,20 @@ exports.handleLinks = function (currentLink, linksInChunkCount, completedEventNa
                     parseCategories($categoryList, $)
                 }
             } else {
-                console.log('Bad Link: ' + currentLink);
+                 console.log('Bad Link: ' + currentLink);
             }
             if (linksInChunkCount != null && completedEventName != null) {
                 if (++_ParsedLinksCount == linksInChunkCount) {
                     _ParsedLinksCount = 0;
                     gp._emitter.emit(completedEventName)
-                    console.log('total products: ' + gp._TotalResultsCount);
-                    console.log('total more than 120: ' + gp._ResultsWhereMoreThan5Pages);
+                    // console.log('total products: ' + gp._TotalResultsCount);
+                    // console.log('total more than 120: ' + gp._ResultsWhereMoreThan5Pages);
                 }
             }
 
         } else {
             debugger;
+            //   parseProductsLinks($productList, $)
         }
     });
 }
@@ -72,8 +68,8 @@ exports.fillProductCategoriesLinks = function (currentLink, eventName) {
                         gp._RepeatedCategoriesCount++;
                     }
                 }
-                console.log(gp._ProductCategoriesUrls.length + " categories collected");
-                console.log(gp._RepeatedCategoriesCount + " repeated categories");
+                // console.log(gp._ProductCategoriesUrls.length + " categories collected");
+                // console.log(gp._RepeatedCategoriesCount + " repeated categories");
                 gp._emitter.emit(eventName);
             });
         }
@@ -90,22 +86,6 @@ var parseProductsLinks = function (productList, $) {
             if (gp._ProductUrls.indexOf(href) < 0) {
                 console.log('product inserted: ' + href);
                 gp._ProductUrls.push(href);
-            }
-        }
-        //add pager logic here       
-        nextPageUrl = $('.pagination li:not(.disabled) a:not(.next.i-next)');
-        var nextPageHref = [];
-        if (nextPageUrl.length > 0) {
-            //nextPageHref = nextPageUrl.attr('href');
-            for (let i = 0; i < nextPageUrl.length; i++) {
-                nextPageHref.push(nextPageUrl[0].attribs.href);
-            }
-        }
-        if (nextPageHref.length > 0) {
-            //parse products
-            //exports.handleLinks(nextPageHref, null, null);
-            for (let i = 0; i < nextPageHref.length; i++) {
-                gp._SubCategoriesUrls.push(nextPageHref[i]);
             }
         }
     });
