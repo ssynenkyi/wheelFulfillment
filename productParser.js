@@ -10,8 +10,9 @@ var _parsedProducts = 0;
 exports.parseProduct = function(url, volume, eventName, categoryUrl) {
     request(url, function(error, response, html) {
         if (!error) {
-            parseDetails(html, url);
-            addCategoryName(categoryUrl);
+            let categoryName = categoryByUrlGet(categoryUrl);
+            addCategoryName(categoryName);
+            parseDetails(html, url, categoryName);
         } else {
             debugger;
         }
@@ -53,17 +54,13 @@ var getProduct = function(productId) {
     }
 }
 
-var parseDetails = function(html, url) {
+
+var parseDetails = function (html, url, categoryName) {
     var $ = cheerio.load(html);
 
     $('#product_addtocart_form').filter(function() {
         var data = $(this);
-        //var product = parseDetails(data);
-        var category = 'Weel Cair';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
-        // if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
-        //     category = 'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';
-        // }
-        var product = new Product(category);
+        var product = new Product(categoryName);
 
         var paragrarphs = data.find("#product-details-tab .basic-information p");
         for (var i = 0; i < paragrarphs.length; i++) {
@@ -178,13 +175,18 @@ var getFloat = function(strPrice) {
     return result;
 }
 
-var addCategoryName = function(urlObj) {
-    var urlPropArray = urlObj.pathname.split('/').filter(s => s != '');
+
+var addCategoryName = function (categoryName) {
+    if (!gp._CategoriesNames.includes(categoryName)) {
+        gp._CategoriesNames.push(categoryName);
+    }
+}
+var categoryByUrlGet = function (categoryUrl) {
+    var result = ""
+    var urlPropArray = categoryUrl.pathname.split('/').filter(s => s != '');
     if (urlPropArray[0] === 'category') {
         //last parameter split by '-', make every first letter uppercase, join splitted array  with ' '
-        var categoryName = urlPropArray[urlPropArray.length - 1].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-        if (!gp._CategoriesNames.includes(categoryName)) {
-            gp._CategoriesNames.push(categoryName);
-        }
+        result = urlPropArray[urlPropArray.length - 1].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
     }
+    return result
 }
