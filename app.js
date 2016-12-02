@@ -5,6 +5,7 @@ var app = express();
 var csvWriter = require("./csvWriter.js");// add 2 to delete images
 var linkHandler = require('./productListHandler');
 var gp = require('./globalProperties')
+var linkHandler = require('./productListHandler')
 
 var _chunkVolume = 75;
 var _startUrl = 0;
@@ -55,7 +56,7 @@ var subcategoriesParse = function (eventName) {
 
  const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/";
 //UNCOMMENT AND RUN
- linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
+// linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
 
 
 

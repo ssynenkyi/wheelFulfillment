@@ -180,11 +180,6 @@ function oneProductRowsPrepare(product) {
     for (let i = 0; i < product.images.length; i++)
        product.images[i] = removePrefix(product.images[i]);
 
-    // if (product.images && product.images.length > 0) {
-    //     firstImage = removePrefix(product.mainImage);
-    // }
-    // var imagesList = '';
-
     var url_key = urlKeyGet(product.productUrl);
     var row = [
         product.name,
@@ -238,7 +233,7 @@ function oneProductRowsPrepare(product) {
         var media_position = '';
         var media_is_disabled = '';
         if (iterationIndex < product.images.length) {
-            media_image = '/' + product.images[iterationIndex];
+            media_image =  product.images[iterationIndex];
             media_attribute_id = 88;
             media_position = iterationIndex + 1;
             media_is_disabled = 0;
@@ -375,17 +370,7 @@ exports.writeCsv = function (products, fileName) {
     writeFile(data, fileName);
 }
 
-var removePrefix = function (image) {
-    if (product.productId == '46f3b86a-9eba-415e-ae6e-76bb6725a506') {
-        debugger;
-    }
-    var result = [];
-    result.push(product.mainImage);
-    for (var index = 0; index < product.images.length; index++) {
-        if (result.indexOf(product.images[index]) < 0) {
-            result.push(product.images[index]);
-        }
-    }
+var removePrefix = function (image) {   
     return image.split('./images')[1];
 }
 
