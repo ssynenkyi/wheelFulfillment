@@ -1,7 +1,9 @@
-var request = require('request')
-var cheerio = require('cheerio')
-var Product = require('./Product.js')
-var gp = require('./globalProperties')
+var request = require('request');
+var cheerio = require('cheerio');
+var Product = require('./Product.js');
+var gp = require('./globalProperties');
+var parseUrl = require('url').parse;
+var getBaseName = require('path').basename;
 
 var _parsedProducts = 0;
 
@@ -19,10 +21,10 @@ exports.parseProduct = function (url, volume, eventName) {
         else
             console.log("not here " + url);
 
-        if (++_parsedProducts == volume) {
-            _parsedProducts = 0;
-            gp._emitter.emit(eventName);
-        }
+            if (++_parsedProducts ==  volume){
+                _parsedProducts = 0;
+                gp._emitter.emit(eventName);
+            }
     })
 }
 
@@ -55,9 +57,12 @@ var parseDetails = function (html) {
 
     $('#product_addtocart_form').filter(function () {
         var data = $(this);
-        var subCategories = $('header .breadcrumb li a');
-        var productCategory = subCategories[subCategories.length - 2].attribs.title;
-        var product = new Product(productCategory);
+        //var product = parseDetails(data);
+        var category = 'Weel Cair';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
+        // if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
+        //     category = 'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';
+        // }
+        var product = new Product(category);
 
         var paragrarphs = data.find("#product-details-tab .basic-information p");
         for (var i = 0; i < paragrarphs.length; i++) {
@@ -86,14 +91,24 @@ var parseDetails = function (html) {
 
             if (images.hasOwnProperty(i)) {
                 if (imageAttributes && imageAttributes['data-image']
-                    && lengthOfProductImages <= maxCountOfImages) {
-                    product.images.push(imageAttributes['data-image']);
+                            && lengthOfProductImages <= maxCountOfImages) {
+                    let oldUrl = imageAttributes ['data-image'],
+                        newUrl = getNewUrlForImage(oldUrl);
+
+                    if (i == 0) {
+                        product.mainImage = newUrl;
+                    }
+
+                    product.images.push(newUrl);
+
+                    gp._ListOfImageUrls.push({
+                        newUrl,
+                        oldUrl,
+                        productId: product.productId,
+                    });
                 }
             }
         }
-
-        // temporal list for saved images
-        product.savedImages = [];
 
         product.name = cleanText(data.find('.product-name').text());
         product.price = getFloat(data.find(".price").text());
@@ -114,6 +129,16 @@ var parseDetails = function (html) {
 
         saveProduct(product);
     });
+};
+
+function getNewUrlForImage(url) {
+    const parsed = parseUrl(url),
+            time = Math.floor(Date.now() / 1000),
+            title = getBaseName(parsed.pathname),
+            hashed = `${time}-${title}`,
+            path = `./images/${hashed}`;
+
+    return path;
 }
 
 var cleanText = function (text) {

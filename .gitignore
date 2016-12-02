@@ -246,3 +246,7 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 /TourEase/TourEase/Properties/PublishProfiles/TourEase.pubxml
+files/imageObjects.txt
+app3New.js
+csvReaderNew.js
+.idea/
