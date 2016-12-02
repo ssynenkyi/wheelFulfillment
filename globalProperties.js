@@ -16,7 +16,10 @@ var _repeatedCategoriesCount= exports._repeatedCategoriesCount  = 0
 exports._RepeatedCategoriesCount = 0;
 exports._TotalResultsCount = 0;
 exports._ResultsWhereMoreThan5Pages = [];
-exports._listOfProductLinks = [];
+exports._ListOfProductLinks = []
+exports._ListFileName = 'ProductsList1.csv'
+
+
 
 // var globalProper = function () {
 //     _emitter,

@@ -2,8 +2,6 @@ var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
-//var http = require('http');
-//var pdfUtils = require("./pdfUtils");
 var csvWriter = require("./csvWriter.js");// add 2 to delete images
 var linkHandler = require('./productListHandler');
 var Product = require('./Product.js').Product
@@ -19,10 +17,7 @@ gp._emitter.on('parseProduct', function () {
     gp._ProductListCount++;
 })
 
-//var _chunkVolume = 75;
-
-var _chunkVolume = 1;
-
+var _chunkVolume = 75;
 
 var _startUrl = 0;
 var _endUrl = _chunkVolume;
@@ -38,7 +33,7 @@ gp._emitter.on('categoriesParse', function () {
         //if the last portion of categories
         nextEventName = 'subCategoriesParse'
     }
-    nextEventName = 'subCategoriesParse'
+    //nextEventName = 'subCategoriesParse'
     let volume = toCount - _startUrl;
     for (let i = _startUrl; i < toCount; i++) {
         linkHandler.handleLinks(gp._ProductCategoriesUrls[i], volume, nextEventName);
@@ -51,15 +46,15 @@ gp._emitter.on('subCategoriesParse', function () {
     if (gp._SubCategoriesUrls.length > 0)
         subcategoriesParse('subCategoriesParse');
     else {
-        // sort listOfProductLinks here
-        gp._listOfProductLinks.sort(() => {
-
-        });
-        gp._emitter.emit('parseProduct');
+        gp._ListOfProductLinks.sort();
+        console.log('links count' + gp._ListOfProductLinks.length); 
+        console.log('gp._ListOfProductLinks');
+        csvWriter.writeLinksToCsv(gp._ListOfProductLinks, gp._ListFileName);  
     }
 });
 
 var subcategoriesParse = function (eventName) {
+    //debugger;
     if (gp._SubCategoriesUrls.length === 0) {
         gp._emitter.emit(eventName);
     } else {
@@ -127,60 +122,12 @@ function getProductById(id) {
     })[0];
 }
 
-// end of Part
-
-const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/";
-linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
-
-
-// var pdfsWithSpacesReplace = function (html, pdfLinks) {
-//     if (pdfLinks.length > 0) {
-//         for (var i = 0; i < pdfLinks.length; i++) {
-//             if (pdfLinks[i].indexOf('/pdfs/') < 0) {
-//                 var newLink = '/pdfs/' + pdfLinks[i].substring(6, pdfLinks[i].trim().length);
-//                 html = html.replace(pdfLinks[i], newLink);
-//                 pdfLinks[i] = newLink;
-//             }
-//             if (pdfLinks[i].indexOf('%20') >= 0) {
-//                 var newLink = pdfLinks[i].replace(new RegExp('%20', 'g'), '_');
-//                 html = html.replace(pdfLinks[i], newLink);
-//             }
-//         }
-//     }
-//     return html;
-// }
-// var descriptionGet = function (data) {
-//     var pdfList = pdfsDownload(data, 'Desc');
-//     var desc = data.find('span[id$="_lblDescription"]');
-//     if (desc != undefined && desc.length > 0) {
-//         var result = pdfsWithSpacesReplace(desc.html(), pdfList);
-//         return result;
-//     }
-//     return '';
-// }
-
-// var pdfsDownload = function (data, containerId) {
-//     var pdfList = []
-//     var anchers = data.find('#' + containerId + ' a');
-//     if (anchers.length > 0) {
-//         for (var i = 0; i < anchers.length; i++) {
-//             if (anchers[i].attribs != undefined &&
-//                 anchers[i].attribs.href != undefined &&
-//                 anchers[i].attribs.href.toLowerCase().indexOf(/pdfs/) == 0) {
-//                 pdfUtils.downloadFile(anchers[i].attribs.href);
-//                 pdfList.push(anchers[i].attribs.href);
-//             }
-//         }
-//     }
-//     return pdfList;
-// }
+ const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/";
+//UNCOMMENT AND RUN
+// linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
 
 
 
-// var isFloat = function (n) {
-//     if (n == '')
-//         return false;
-//     n = n.replace('$', '').trim();
-//     return Number(n) == n;
-// }
+// // // const csvReader = require('./csvReader');
+// // // csvReader.ReadLinksFromCsv('files/ProductsList1.csv')
 
