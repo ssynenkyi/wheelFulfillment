@@ -1,7 +1,9 @@
-var request = require('request')
-var cheerio = require('cheerio')
-var Product = require('./Product.js')
-var gp = require('./globalProperties')
+var request = require('request');
+var cheerio = require('cheerio');
+var Product = require('./Product.js');
+var gp = require('./globalProperties');
+var parseUrl = require('url').parse;
+var getBaseName = require('path').basename;
 
 var _parsedProducts = 0;
 
@@ -90,13 +92,23 @@ var parseDetails = function (html) {
             if (images.hasOwnProperty(i)) {
                 if (imageAttributes && imageAttributes['data-image']
                             && lengthOfProductImages <= maxCountOfImages) {
-                    product.images.push(imageAttributes ['data-image']);
+                    let oldUrl = imageAttributes ['data-image'],
+                        newUrl = getNewUrlForImage(oldUrl);
+
+                    if (i == 0) {
+                        product.mainImage = newUrl;
+                    }
+
+                    product.images.push(newUrl);
+
+                    gp._ListOfImageUrls.push({
+                        newUrl,
+                        oldUrl,
+                        productId: product.productId,
+                    });
                 }
             }
         }
-
-        // temporal list for saved images
-        product.savedImages = [];
 
         product.name = cleanText(data.find('.product-name').text());
         product.price = getFloat(data.find(".price").text());
@@ -117,6 +129,16 @@ var parseDetails = function (html) {
 
         saveProduct(product);
     });
+};
+
+function getNewUrlForImage(url) {
+    const parsed = parseUrl(url),
+            time = Math.floor(Date.now() / 1000),
+            title = getBaseName(parsed.pathname),
+            hashed = `${time}-${title}`,
+            path = `./images/${hashed}`;
+
+    return path;
 }
 
 var cleanText = function (text) {
