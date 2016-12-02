@@ -11,6 +11,7 @@ const iu = require('./imageUtils');
 const csvReader = require('./csvReader');
 const fs = require('fs');
 const url = require('url');
+const jsonHandler = require('./jsonHandler');
 
 var readProductsLinks = function (eventName) {
     csvReader.readProductsUrls('parseProduct');
@@ -34,16 +35,16 @@ gp._emitter.on('parseProduct', function () {
 gp._emitter.on('writeCsv', function(){
     console.log(gp._CategoriesNames);
     console.log(gp._CategoriesNames.length);
+    jsonHandler.write('./files/imageObjects.txt', gp._ListOfImageUrls, 'Image objects were successfully saved.');
     fs.writeFileSync('files/categoriesNames.csv', gp._CategoriesNames.join(','), 'utf-8');
     //csvWriter.writeCsv(gp._Products, 'result')
-})
-
+});
 
 var parse = function (productUrl, volume, nextEventName) {
     productParser.parseProduct(productUrl);
 }
 
-readProductsLinks()
+readProductsLinks();
 
 // gp._emitter.on('subCategoriesParse', function () {
 //     if (gp._SubCategoriesUrls.length > 0)

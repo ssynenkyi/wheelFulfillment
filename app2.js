@@ -19,10 +19,10 @@ gp._emitter.on('parseProduct', function () {
     let toCount = 0
     //recurtion to the last chunk
     let nextEventName = 'parseProduct';
-    if (_endUrl < (gp._ListOfProductLinks.length - 1))
+    if (_endUrl < gp._ListOfProductLinks.length)
         toCount = _endUrl;
     else {
-        toCount = (gp._ListOfProductLinks.length - 1)
+        toCount = gp._ListOfProductLinks.length
         //if the last portion of categories
         nextEventName = 'writeProducts'
     }

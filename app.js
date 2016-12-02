@@ -14,10 +14,10 @@ gp._emitter.on('categoriesParse', function () {
     let toCount = 0
     //recurtion to the last chunk
     let nextEventName = 'categoriesParse';
-    if (_endUrl < (gp._ProductCategoriesUrls.length - 1))
+    if (_endUrl < gp._ProductCategoriesUrls.length)
         toCount = _endUrl;
     else {
-        toCount = (gp._ProductCategoriesUrls.length - 1)
+        toCount = gp._ProductCategoriesUrls.length 
         //if the last portion of categories
         nextEventName = 'subCategoriesParse'
     }
@@ -55,7 +55,7 @@ var subcategoriesParse = function (eventName) {
 
  const _ProductListUrl = "http://www.1800wheelchair.com/category/all-categories/";
 //UNCOMMENT AND RUN
-// linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
+ linkHandler.fillProductCategoriesLinks(_ProductListUrl, 'categoriesParse');
 
 
 
