@@ -19,6 +19,7 @@ exports._ResultsWhereMoreThan5Pages = [];
 exports._ListOfProductLinks = []
 exports._ListFileName = 'ProductsList1.csv'
 
+exports._CategoriesNames = [];
 
 
 // var globalProper = function () {
