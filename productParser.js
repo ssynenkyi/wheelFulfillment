@@ -1,67 +1,23 @@
 var request = require('request');
 var cheerio = require('cheerio');
 var Product = require('./Product.js');
-var gp = require('./globalProperties');
 var parseUrl = require('url').parse;
 var getBaseName = require('path').basename;
 
-var _parsedProducts = 0;
-
-exports.parseProduct = function (url, volume, eventName) {
+exports.parseProduct = function (url, done) {
     request(url, function (error, response, html) {
         if (!error) {
-            parseDetails(html);
-        } else {
-            debugger;
+            parseDetails(html, done);
         }
-        //for test
-        var $ = cheerio.load(html);
-        if ($('#product-view-tab').length > 0)
-            console.log(gp._Products.length);
-        else
-            console.log("not here " + url);
-
-            if (++_parsedProducts ==  volume){
-                _parsedProducts = 0;
-                gp._emitter.emit(eventName);
-            }
     })
-}
+};
 
-var saveProduct = function (productObj) {
-    var updateExistingProduct = false;
-    if (gp._Products.length > 0) {
-        for (i = 0; i < gp._Products.length; i++) {
-            if (gp._Products[i].productId == productObj.productId) {
-                gp._Products[i] = productObj;
-                updateExistingProduct = true;
-            }
-        }
-    }
-    if (!updateExistingProduct) {
-        gp._Products.push(productObj);
-    }
-}
-var getProduct = function (productId) {
-    if (gp._Products.length > 0) {
-        for (i = 0; i < gp._Products.length; i++) {
-            if (gp._Products[i].productId == productId) {
-                return gp._Products[i];
-            }
-        }
-    }
-}
-
-var parseDetails = function (html) {
+var parseDetails = function (html, done) {
     var $ = cheerio.load(html);
 
     $('#product_addtocart_form').filter(function () {
         var data = $(this);
-        //var product = parseDetails(data);
-        var category = 'Weel Cair';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
-        // if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
-        //     category = 'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';
-        // }
+        var category = 'Weel Cair';
         var product = new Product(category);
 
         var paragrarphs = data.find("#product-details-tab .basic-information p");
@@ -83,7 +39,8 @@ var parseDetails = function (html) {
 
         // getting all images of current product
         const images = data.find('#more-view-thumbs a'),
-            maxCountOfImages = 5;
+                imageUrls = [],
+                maxCountOfImages = 5;
 
         for (let i in images) {
             let lengthOfProductImages = product.images.length,
@@ -101,7 +58,7 @@ var parseDetails = function (html) {
 
                     product.images.push(newUrl);
 
-                    gp._ListOfImageUrls.push({
+                    imageUrls.push({
                         newUrl,
                         oldUrl,
                         productId: product.productId,
@@ -127,7 +84,7 @@ var parseDetails = function (html) {
             }
         }
 
-        saveProduct(product);
+        done(null, { product, imageUrls });
     });
 };
 
@@ -162,7 +119,7 @@ var cleanText = function (text) {
         return text.trim().replace(new RegExp('™', 'g'), '');
     }
     return '';
-}
+};
 
 var getFloat = function (strPrice) {
     var result = 0;
@@ -170,4 +127,4 @@ var getFloat = function (strPrice) {
         result = parseFloat(strPrice.replace('$', '').replace(',', '').trim());
     }
     return result;
-}
+};

@@ -14,21 +14,16 @@ exports.ReadLinksFromCsv = function (fileName, eventName) {
         .on('end', function (data) {
             gp._emitter.emit(eventName);
         })
-}
+};
 
-
-exports.readProductsUrls = function (eventName) {
-    var obj;
-    fs.readFile('files/urlObjects.txt', 'utf8', function (err, data) {
-        if (err) throw err;
-        gp._ProductsUrlObject = JSON.parse(data);
-        gp._emitter.emit(eventName);
-        // let pc = 0;
-        // for (let i = 0; i < gp._ProductsUrlObject.length; i++) {
-        //     console.log(gp._ProductsUrlObject[i].caregory + " - " + (i+ 1))
-        //     for (let j = 0; j < gp._ProductsUrlObject[i].products.length; j++) {
-        //         console.log((++ pc) + ' - ' +  gp._ProductsUrlObject[i].products[j])
-        //     }
-        // }
+exports.readProductsUrls = function (filename, done) {
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.log(err);
+            done(err);
+        } else {
+            let productUrlObj = JSON.parse(data);
+            done(null, productUrlObj);
+        }
     });
-}
+};
