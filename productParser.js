@@ -19,7 +19,7 @@ exports.parseProduct = function (url, volume, eventName) {
         if ($('#product-view-tab').length > 0)
             console.log(gp._Products.length);
         else
-            console.log("not here " + url);   
+            console.log("not here " + url);
 
             if (++_parsedProducts ==  volume){
                 _parsedProducts = 0;
@@ -57,7 +57,7 @@ var parseDetails = function (html) {
 
     $('#product_addtocart_form').filter(function () {
         var data = $(this);
-        //var product = parseDetails(data);  
+        //var product = parseDetails(data);
         var category = 'Weel Cair';// 'CPAP & BiPAP Accessories/BiPAP Mashine';
         // if (_ProductListUrl.indexOf('cpap-masks') >= 0) {
         //     category = 'CPAP & Respiratory'; //'CPAP & BiPAP Accessories/CPAP & Respiratory';

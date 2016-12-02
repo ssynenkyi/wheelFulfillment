@@ -3,7 +3,6 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
 var csvWriter = require("./csvWriter.js");// add 2 to delete images
-var linkHandler = require('./productListHandler');
 var Product = require('./Product.js').Product
 var gp = require('./globalProperties')
 var productParser = require('./productParser')
@@ -55,18 +54,7 @@ readProductsLinks();
 //     }
 // });
 
-// var subcategoriesParse = function (eventName) {
-//     //debugger;
-//     if (gp._SubCategoriesUrls.length === 0) {
-//         gp._emitter.emit(eventName);
-//     } else {
-//         let subCategories = gp._SubCategoriesUrls;
-//         gp._SubCategoriesUrls = [];
-//         for (var i = 0; i < subCategories.length; i++) {
-//             linkHandler.handleLinks(subCategories[i], subCategories.length, eventName)
-//         }
-//     }
-// }
+
 
 // // gp._emitter.on('theLastPageLinksParsed', function () {
 // //     for (var i = 0; i < gp._ProductUrls.length; i++) {
