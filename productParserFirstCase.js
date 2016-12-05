@@ -7,13 +7,15 @@ var getBaseName = require('path').basename;
 
 var _parsedProducts = 0;
 
-exports.parseProduct = function(url, volume, eventName, categoryUrl) {
-    request(url, function(error, response, html) {
+exports.parseProduct = function (url, volume, eventName, categoryUrl) {
+    request(url, function (error, response, html) {
         if (!error) {
             let categoryName = categoryByUrlGet(categoryUrl);
             addCategoryName(categoryName);
             parseDetails(html, url, categoryName);
+           // console.log(_Products.hength)
         } else {
+            console.log('error: ' + error)
             debugger;
         }
         //for test
@@ -30,7 +32,7 @@ exports.parseProduct = function(url, volume, eventName, categoryUrl) {
     })
 }
 
-var saveProduct = function(productObj) {
+var saveProduct = function (productObj) {
     var updateExistingProduct = false;
     if (gp._Products.length > 0) {
         for (i = 0; i < gp._Products.length; i++) {
@@ -44,7 +46,7 @@ var saveProduct = function(productObj) {
         gp._Products.push(productObj);
     }
 }
-var getProduct = function(productId) {
+var getProduct = function (productId) {
     if (gp._Products.length > 0) {
         for (i = 0; i < gp._Products.length; i++) {
             if (gp._Products[i].productId == productId) {
@@ -58,9 +60,9 @@ var getProduct = function(productId) {
 var parseDetails = function (html, url, categoryName) {
     var $ = cheerio.load(html);
 
-    $('#product_addtocart_form').filter(function() {
+    $('#product_addtocart_form').filter(function () {
         var data = $(this);
-        var product = new Product(categoryName);
+        var product = new Product(/*categoryName*/"Transport Wheelchairs");//Temporary desision
 
         var paragrarphs = data.find("#product-details-tab .basic-information p");
         for (var i = 0; i < paragrarphs.length; i++) {
@@ -119,13 +121,13 @@ var parseDetails = function (html, url, categoryName) {
             var panelHtml = $(panels[i]).html();
             //var panelHtmlH2 = $(.html();
             if (panelHtml.indexOf('<h2>Features') > -1) {
-                product.features = panelHtml;
+                product.features = cleanText(panelHtml);
             }
             if (panelHtml.indexOf('<h2>Description') > -1) {
-                product.description = panelHtml;
+                product.description = cleanText(panelHtml);
             }
             if (panelHtml.indexOf('<h2>Specifications') > -1) {
-                product.specifications = panelHtml;
+                product.specifications = cleanText(panelHtml);
             }
         }
         product.productUrl = url;
@@ -144,30 +146,37 @@ function getNewUrlForImage(url) {
     return path;
 }
 
-var cleanText = function(text) {
+var cleanText = function (text) {
     if (text != null && text != undefined && text != '') {
-        if (text.indexOf('/MediaPlayer.aspx?') >= 0) {
-            text = text.replace(new RegExp('href="/MediaPlayer.aspx?', 'g'), 'style = "display:none" href="/MediaPlayer.aspx?');
-        }
-        if (text.indexOf('/blankcustom.aspx?') >= 0) {
-            text = text.replace(new RegExp('href="/blankcustom.aspx?', 'g'), 'style = "display:none" href="/blankcustom.aspx?');
-        }
-        if (text.indexOf('headgear.aspx"') >= 0) {
-            text = text.replace(new RegExp('headgear.aspx"', 'g'), 'headgear.aspx" style = "display:none"');
-        }
-        if (text.indexOf('href="/1073114-Respironics-GoLife-for-Men-CPAP-Mask.aspx"') >= 0) {
-            text = text.replace('href="/1073114-Respironics-GoLife-for-Men-CPAP-Mask.aspx"', 'href="#"');
-        }
-        if (text.indexOf('CPAP Supply USA') > 0) {
-            text = text.replace(new RegExp('CPAP Supply USA', 'g'), 'Medical Supply Now');
-        }
 
+
+        if (text.indexOf('class="mobile-description collapsible"') >= 0) {
+            text = text.replace('class="mobile-description collapsible"', '');
+        }
+        if (text.indexOf('class="nav-button collapsed navbar-toggle"') >= 0) {
+            text = text.replace('class="nav-button collapsed navbar-toggle"', 'class="" style="display: none"');
+        }
+        if (text.indexOf('<h2>') >= 0) {
+            text = text.replace(new RegExp('<h2>', 'g'), '<h4>');
+        }
+        if (text.indexOf('</h2>') >= 0) {
+            text = text.replace(new RegExp('</h2>', 'g'), '</h4>');
+        }
+        if (text.indexOf('collapse') >= 0) {
+            text = text.replace(new RegExp('collapse', 'g'), '');
+        }
+        if (text.indexOf('collapsible') >= 0) {
+            text = text.replace(new RegExp('collapsible', 'g'), '');
+        }
+        // if (text.indexOf('class="nav-button collapsed navbar-toggle"') >= 0) {
+        //     text = text.replace('class="nav-button collapsed navbar-toggle"', 'class="" style="display: none"');
+        // }
         return text.trim().replace(new RegExp('™', 'g'), '');
     }
     return '';
 }
 
-var getFloat = function(strPrice) {
+var getFloat = function (strPrice) {
     var result = 0;
     if (strPrice != '') {
         result = parseFloat(strPrice.replace('$', '').replace(',', '').trim());

@@ -183,7 +183,7 @@ function oneProductRowsPrepare(product) {
     var url_key = urlKeyGet(product.productUrl);
     var row = [
         product.name,
-        product.sku + 'O',
+        product.sku,
         type,
         4, // visibility
         product.category,

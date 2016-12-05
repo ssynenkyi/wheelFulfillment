@@ -19,7 +19,7 @@ var readProductsLinks = function (eventName) {
 
 var _parsedCategory = 0;
 gp._emitter.on('parseProduct', function () {
-    if (_parsedCategory < gp._ProductsUrlObject.length && _parsedCategory <= 2) {
+    if (_parsedCategory < gp._ProductsUrlObject.length /*&& _parsedCategory <= 2*/) {
         for (let i = 0; i < gp._ProductsUrlObject[_parsedCategory].products.length; i++) {
             let volume = gp._ProductsUrlObject[_parsedCategory].products.length;
             let productLink = gp._ProductsUrlObject[_parsedCategory].products[i];
@@ -27,6 +27,7 @@ gp._emitter.on('parseProduct', function () {
             productParser.parseProduct(productLink, volume, 'parseProduct', categoryUrl);
         }
         _parsedCategory++;
+        console.log('parsed categories: ' + _parsedCategory)
     } else {
         gp._emitter.emit('writeCsv')
     }   
