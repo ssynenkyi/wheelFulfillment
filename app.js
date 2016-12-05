@@ -5,6 +5,7 @@ var app = express();
 var csvWriter = require("./csvWriter.js");// add 2 to delete images
 var linkHandler = require('./productListHandler');
 var gp = require('./globalProperties')
+var linkHandler = require('./productListHandler')
 
 var _chunkVolume = 75;
 var _startUrl = 0;
@@ -14,10 +15,10 @@ gp._emitter.on('categoriesParse', function () {
     let toCount = 0
     //recurtion to the last chunk
     let nextEventName = 'categoriesParse';
-    if (_endUrl < (gp._ProductCategoriesUrls.length - 1))
+    if (_endUrl < gp._ProductCategoriesUrls.length)
         toCount = _endUrl;
     else {
-        toCount = (gp._ProductCategoriesUrls.length - 1)
+        toCount = gp._ProductCategoriesUrls.length 
         //if the last portion of categories
         nextEventName = 'subCategoriesParse'
     }

@@ -20,6 +20,8 @@ exports._ListOfProductLinks = []
 exports._ListFileName = 'ProductsList1.csv'
 exports._ListOfImageUrls = [];
 
+exports._CategoriesNames = [];
+exports._Brands = [];
 
 
 // var globalProper = function () {

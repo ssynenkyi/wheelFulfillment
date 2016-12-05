@@ -125,9 +125,9 @@ function oneProductRowsPrepare(product) {
     var childSkuList = [];
     var childSizeList = [];
     while (iteration < product.sizeOptions.length) {
-        var sku = sizeSkuGet(product.sizeOptions[iteration], product.sku, iteration);
-        var size = getSize(product.sizeOptions[iteration]);
-        var url_key = urlKeyGet(product.name + '-' + size);
+        var sku = product.sku;// sizeSkuGet(product.sizeOptions[iteration], product.sku, iteration);
+        var size = ''; //getSize(product.sizeOptions[iteration]);
+        var url_key = urlKeyGet(product.productUrl);
         childSkuList.push(sku);
         childSizeList.push(size);
         var row = [
@@ -139,7 +139,7 @@ function oneProductRowsPrepare(product) {
             product.brand,
             product.description,
             product.specifications,
-            product.resources,
+            product.features,
             firstImage,
             product.price,
             product.description,//short_description
@@ -176,24 +176,21 @@ function oneProductRowsPrepare(product) {
         rows.push(row);
         iteration++;
     }
-    var firstImage = '';
-    product.images = resortImages(product);
-    if (product.images && product.images.length > 0) {
-        firstImage = '/' + product.images[0];
-    }
-    // var imagesList = '';
+    var firstImage = removePrefix(product.mainImage);
+    for (let i = 0; i < product.images.length; i++)
+       product.images[i] = removePrefix(product.images[i]);
 
-    var url_key = urlKeyGet(product.name);
+    var url_key = urlKeyGet(product.productUrl);
     var row = [
         product.name,
-        product.sku + 'O',
+        product.sku,
         type,
         4, // visibility
         product.category,
         product.brand,
         product.description,
         product.specifications,
-        product.resources,
+        product.features,
         firstImage,
         product.price,
         product.description,//short_description
@@ -236,7 +233,7 @@ function oneProductRowsPrepare(product) {
         var media_position = '';
         var media_is_disabled = '';
         if (iterationIndex < product.images.length) {
-            media_image = '/' + product.images[iterationIndex];
+            media_image =  product.images[iterationIndex];
             media_attribute_id = 88;
             media_position = iterationIndex + 1;
             media_is_disabled = 0;
@@ -297,8 +294,14 @@ function oneProductRowsPrepare(product) {
     }
     return rows;
 }
-var urlKeyGet = function (neme) {
-    var result = neme.replace(new RegExp(' ', 'g'), '-').toLowerCase();
+var urlKeyGet = exports.urlKeyGet = function (url) {
+    var result = '';
+    let parts = url.split('product/');
+    if (parts.length > 1) {
+        result = parts[1].trim();
+        if (result.substring(result.substring(result.length - 1, 1) == '/'))
+            result = result.substring(0, result.length - 1);
+    }
     return result;
 }
 var dataPrepare = function (headers, products) {
@@ -367,16 +370,7 @@ exports.writeCsv = function (products, fileName) {
     writeFile(data, fileName);
 }
 
-var resortImages = function (product) {
-    if (product.productId == '46f3b86a-9eba-415e-ae6e-76bb6725a506') {
-        debugger;
-    }
-    var result = [];
-    result.push(product.mainImage);
-    for (var index = 0; index < product.images.length; index++) {
-        if (result.indexOf(product.images[index]) < 0) {
-            result.push(product.images[index]);
-        }
-    }
-    return result;
+var removePrefix = function (image) {   
+    return image.split('./images')[1];
 }
+
