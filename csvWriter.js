@@ -305,7 +305,7 @@ var urlKeyGet = exports.urlKeyGet = function (url) {
     return result;
 }
 var dataPrepare = function (headers, products) {
-    debugger;
+
     var rows = [];
     rows.push(headers);
     for (var i = 0; i < products.length; i++) {

@@ -3,13 +3,17 @@ const async = require('async'),
     csvWriter = require("./csvWriter.js"),
     jsonHandler = require('./jsonHandler'),
     productParser = require('./productParser');
+var gp = require('./globalProperties');
+const fs = require('fs');
+const url = require('url');
 
-const urlObjFile = 'files/urlObjects.txt',
-    limitOfConcurrentCategories = 1,
-    limitOfConcurrentProducts = 10;
+const urlObjFile = 'files/urlObjectsFirstPart.txt',
+    limitOfConcurrentCategories = 3,
+    limitOfConcurrentProducts = 15;
 
 let _parsedCategory = 0,
-    countOfCategoriesToParse = 2;
+    countOfTotalParsedProducts = 0;
+    countOfCategoriesToParse = 3;
 
 function readProductsLinks(done) {
     csvReader.readProductsUrls(urlObjFile, done);
@@ -19,9 +23,14 @@ function parseProducts(productUrlObj, done) {
     async.mapLimit(productUrlObj, limitOfConcurrentCategories, (category, categoryIsDone) => {
         if (_parsedCategory < productUrlObj.length && _parsedCategory <= countOfCategoriesToParse) {
             _parsedCategory++;
+            let productCounter = 0;
 
             async.mapLimit(category.products, limitOfConcurrentProducts, (product, productIsDone) => {
-                productParser.parseProduct(product, productIsDone);
+                countOfTotalParsedProducts++;
+
+                let categoryUrl = url.parse(category.caregory, true, true);
+				productParser.parseProduct(product, productIsDone, categoryUrl);
+                console.log(`Products #${++productCounter} with url \n${product}\n was successfully parsed.`);
             }, (productErr, products) => {
                 if (productErr) {
                     console.log(productErr.message);
@@ -40,6 +49,7 @@ function parseProducts(productUrlObj, done) {
             done(categoryErr);
         } else {
             console.log(`All categories were successfully parsed.`);
+            console.log(`Totally were parsed ${_parsedCategory} categories and ${countOfTotalParsedProducts} products.`);
             done(null, products);
         }
     });
@@ -48,6 +58,11 @@ function parseProducts(productUrlObj, done) {
 function writeResultsToFile(products, done) {
     const dividedProducts = divideProductsAndUrls(products);
     jsonHandler.write('./files/imageObjects.txt', dividedProducts.images, 'Image objects were successfully saved.');
+
+	fs.writeFileSync('files/categoriesNames.csv', gp._CategoriesNames.join(','), 'utf-8');
+    fs.writeFileSync('files/Brands.csv', gp._Brands.join(','), 'utf-8');
+    csvWriter.writeCsv(dividedProducts.products, 'result')
+
 
     // here should be csv writing of products
 

@@ -6,7 +6,7 @@ var csvWriter = require("./csvWriter.js");// add 2 to delete images
 var linkHandler = require('./productListHandler');
 var Product = require('./Product.js').Product
 var gp = require('./globalProperties')
-var productParser = require('./productParser')
+var productParser = require('./productParserFirstCase')
 const iu = require('./imageUtils');
 const csvReader = require('./csvReader');
 const fs = require('fs');
@@ -30,7 +30,7 @@ gp._emitter.on('parseProduct', function () {
         console.log('parsed categories: ' + _parsedCategory)
     } else {
         gp._emitter.emit('writeCsv')
-    }   
+    }
 });
 
 gp._emitter.on('writeCsv', function(){
