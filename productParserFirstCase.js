@@ -4,16 +4,17 @@ var Product = require('./Product.js');
 var gp = require('./globalProperties');
 var parseUrl = require('url').parse;
 var getBaseName = require('path').basename;
+var hash = require('string-hash');
 
 var _parsedProducts = 0;
 
-exports.parseProduct = function (url, volume, eventName, categoryUrl) {
+exports.parseProduct = function (url, volume, eventName, categoryUrl, callBack) {
     request(url, function (error, response, html) {
         if (!error) {
             let categoryName = categoryByUrlGet(categoryUrl);
             addCategoryName(categoryName);
             parseDetails(html, url, categoryName);
-           // console.log(_Products.hength)
+            // console.log(_Products.hength)
         } else {
             console.log('error: ' + error)
             debugger;
@@ -27,7 +28,10 @@ exports.parseProduct = function (url, volume, eventName, categoryUrl) {
 
         if (++_parsedProducts == volume) {
             _parsedProducts = 0;
-            gp._emitter.emit(eventName);
+            if (callBack != undefined && callBack != null)
+                callBack();
+            else
+                gp._emitter.emit(eventName);
         }
     })
 }
@@ -57,7 +61,7 @@ var getProduct = function (productId) {
 }
 
 
-var parseDetails = function (html, url, categoryName) {
+var parseDetails = exports.parseDetails = function (html, url, categoryName) {
     var $ = cheerio.load(html);
 
     $('#product_addtocart_form').filter(function () {
@@ -96,7 +100,7 @@ var parseDetails = function (html, url, categoryName) {
                 if (imageAttributes && imageAttributes['data-image']
                     && lengthOfProductImages <= maxCountOfImages) {
                     let oldUrl = imageAttributes['data-image'],
-                        newUrl = getNewUrlForImage(oldUrl);
+                        newUrl = getNewUrlForImage(product.productId, oldUrl);
 
                     if (i == 0) {
                         product.mainImage = newUrl;
@@ -136,20 +140,17 @@ var parseDetails = function (html, url, categoryName) {
     });
 };
 
-function getNewUrlForImage(url) {
-    const parsed = parseUrl(url),
-        time = Math.floor(Date.now() / 1000),
-        title = getBaseName(parsed.pathname),
-        hashed = `${time}-${title}`,
-        path = `./images/${hashed}`;
+function getNewUrlForImage(productId, url) {
+    var parsed = parseUrl(url)
+    var title = getBaseName(parsed.pathname)
+    var hashed = hash(productId)
+    var path = `./images/${hashed}-${title}`;
 
     return path;
 }
 
 var cleanText = function (text) {
     if (text != null && text != undefined && text != '') {
-
-
         if (text.indexOf('class="mobile-description collapsible"') >= 0) {
             text = text.replace('class="mobile-description collapsible"', '');
         }

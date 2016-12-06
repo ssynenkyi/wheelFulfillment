@@ -70,6 +70,9 @@ artifacts/
 *.pidb
 *.svclog
 *.scc
+*.png
+*.jpeg
+FirstPuchOfImages.rar
 
 # Chutzpah Test files
 _Chutzpah*

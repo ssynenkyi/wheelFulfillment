@@ -17,9 +17,9 @@ exports.ReadLinksFromCsv = function (fileName, eventName) {
 }
 
 
-exports.readProductsUrls = function (eventName) {
+exports.readProductsUrls = function (filePath, eventName) {
     var obj;
-    fs.readFile('files/urlObjects.txt', 'utf8', function (err, data) {
+    fs.readFile(filePath, 'utf8', function (err, data) {
         if (err) throw err;
         gp._ProductsUrlObject = JSON.parse(data);
         gp._emitter.emit(eventName);
@@ -32,3 +32,4 @@ exports.readProductsUrls = function (eventName) {
         // }
     });
 }
+

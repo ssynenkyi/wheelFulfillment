@@ -8,6 +8,8 @@ const http = require('http'),
 let countOfAllImages = 0,
     countOfDownloadedImages = 0;
 
+const listOfImagesToDownload = new Map();
+
 function saveImagesFromFile(filename) {
     const imageObjects = jsonHandler.read(filename),
             limitOfConcurrentDownloads = 50;
@@ -21,31 +23,38 @@ function saveImagesFromFile(filename) {
         if (err) {
             console.log(err.message);
         } else {
-            console.log(`All images were successfully saved.`);
+            console.log(`${countOfDownloadedImages} images were successfully saved.`);
+            console.log("Images that weren't saved\n", listOfImagesToDownload);
         }
     });
 }
-
+var _imCount = 0;
 function saveImage(productId, url, path, cb) {
-    function confirmImageDownloading() {
+    /*function confirmImageDownloading() {
         countOfDownloadedImages += 1;
         console.log(`Downloaded: ${countOfDownloadedImages}. Image ${path} of Product ${productId} was saved`);
         cb();
-    }
+    }*/
 
     if (!fileExists(path)) {
         let file = fs.createWriteStream(path);
 
         http.get(url, res => {
             // TODO: move confirmImageDownloading to res.on('close')
-            res.on('close', () => {});
+            res.on('end', () => {
+                countOfDownloadedImages += 1;
+                listOfImagesToDownload.delete(url);
+                console.log(`Downloaded: ${ countOfDownloadedImages}. Image ${url} of Product ${productId} was saved`); });
             res.on('error', err => { console.log(err); cb(err); });
-
             res.pipe(file);
-            confirmImageDownloading();
+
+            listOfImagesToDownload.set(url, path);
+            console.log(`Started to download image: ${url}`);           
+            console.log('imcount: ' +  ++_imCount);
+            cb();
         });
     } else {
-        confirmImageDownloading();
+        cb();
     }
 }
 
