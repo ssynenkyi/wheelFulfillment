@@ -12,24 +12,44 @@ const csvReader = require('./csvReader');
 const fs = require('fs');
 const url = require('url');
 const jsonHandler = require('./jsonHandler');
+var fileExists = require('file-exists');
 
 
 var readProductsLinks = function () {
-    csvReader.readProductsUrls('files/urlObjects2.txt', 'parseProduct');
+    csvReader.readProductsUrls('files/urlObjects1.txt', 'parseProduct');
 }
 var readBrends = function () {
-    fs.readFile('files/brandsList.txt', 'utf8', function (err, data) {
-        if (err) throw err;
-        gp._Brands = JSON.parse(data);
+    if (!fileExists('files/brandsList.txt')) {
+        readSku();
+    } else {
+        fs.readFile('files/brandsList.txt', 'utf8', function (err, data) {
+            if (err) throw err;
+            gp._Brands = JSON.parse(data);
+            readSku();
+        });
+    }
+}
+var readSku = function () {
+    if (!fileExists('files/skuList.txt')) {
         readProductsLinks();
-    });
+    } else {
+        fs.readFile('files/skuList.txt', 'utf8', function (err, data) {
+            if (err) throw err;
+            gp._SkuList = JSON.parse(data);
+            readProductsLinks();
+        });
+    }
 }
 var readCategories = function () {
-    fs.readFile('files/categoriesNamesList.txt', 'utf8', function (err, data) {
-        if (err) throw err;
-        gp._CategoriesNames = JSON.parse(data);
+    if (!fileExists('files/categoriesNamesList.txt')) {
         readBrends();
-    });
+    } else {
+        fs.readFile('files/categoriesNamesList.txt', 'utf8', function (err, data) {
+            if (err) throw err;
+            gp._CategoriesNames = JSON.parse(data);
+            readBrends();
+        });
+    }
 }
 
 var _parsedCategory = 0;
@@ -55,9 +75,10 @@ gp._emitter.on('parseProduct', function () {
 });
 
 gp._emitter.on('writeCsv', function () {
-    jsonHandler.write('./files/imageObjects.txt', gp._ListOfImageUrls, 'Image objects were successfully saved.');
-    fs.writeFileSync('files/categoriesNames.csv', gp._CategoriesNames.join(','), 'utf-8');
-    fs.writeFileSync('files/Brands.csv', gp._Brands.join(','), 'utf-8');
+    jsonHandler.write('./files/imageObjects.txt', gp._ListOfImageUrls, '_ListOfImageUrls successfully saved.');
+    jsonHandler.write('./files/skuList.txt', gp._SkuList, '_SkuList successfully saved.');
+    jsonHandler.write('./files/categoriesNamesList.txt', gp._CategoriesNames, '_CategoriesNames successfully saved.');
+    jsonHandler.write('./files/brandsList.txt', gp._Brands, '_Brands successfully saved.');     
     csvWriter.writeCsv(gp._Products, 'result')
 });
 

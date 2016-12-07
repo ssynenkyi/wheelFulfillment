@@ -22,6 +22,7 @@ exports._ListOfImageUrls = [];
 
 exports._CategoriesNames = [];
 exports._Brands = [];
+exports._SkuList = [];
 
 
 // var globalProper = function () {

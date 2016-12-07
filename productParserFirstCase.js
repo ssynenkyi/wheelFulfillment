@@ -73,11 +73,12 @@ var parseDetails = exports.parseDetails = function (html, url, categoryName) {
             var paragraphHtml = $(paragrarphs[i]).html();
             if (paragraphHtml.indexOf('sku') > -1) {
                 $j = cheerio.load(paragraphHtml);
-                product.sku = $j('span').html();
+                //let sku = $j('span').html();
+                product.sku = getHandledSku($j('span').html());
             }
             if (paragraphHtml.indexOf('brand') > -1) {
                 $j = cheerio.load(paragraphHtml);
-                product.brand = $j('span').html();
+                product.brand = cleanBrand($j('span').html());
                 if (!gp._Brands.includes(product.brand)) {
                     gp._Brands.push(product.brand);
                 }
@@ -118,7 +119,14 @@ var parseDetails = exports.parseDetails = function (html, url, categoryName) {
         }
         product.mainImage = product.images.length > 0 ? product.images[0] : '';
 
-        product.name = cleanText(data.find('.product-name').text());
+        let names = data.find('.product-name')
+        let name = '';
+        if (names.length > 1) {
+            name = $(names[0]).text()
+        } else {
+            name = names.text()
+        }
+        product.name = name;
         product.price = getFloat(data.find(".price").text());
         var panels = data.find(".product-view-sublock");
         for (var i = 0; i < panels.length; i++) {
@@ -149,8 +157,26 @@ function getNewUrlForImage(productId, url) {
     return path;
 }
 
+var getHandledSku = function (sku) {
+    if (!gp._SkuList.includes(sku)) {
+        gp._SkuList.push(sku)
+    } else {
+        for (let i = 1; i < 10; i++) {
+            let newSku = sku + '-' + i;
+            if (!gp._SkuList.includes(newSku)) {
+                gp._SkuList.push(newSku)
+                return newSku;
+            }
+        }
+    }
+    return sku;
+}
+
 var cleanText = function (text) {
     if (text != null && text != undefined && text != '') {
+        if (text.indexOf('Prevail Maximum Underwear, Prevail Maximum Underwear') >= 0) {
+            text = text.replace('Prevail Maximum Underwear, Prevail Maximum Underwear', 'Prevail Maximum Underwear');
+        }
         if (text.indexOf('class="mobile-description collapsible"') >= 0) {
             text = text.replace('class="mobile-description collapsible"', '');
         }
@@ -175,6 +201,26 @@ var cleanText = function (text) {
         return text.trim().replace(new RegExp('™', 'g'), '');
     }
     return '';
+}
+var cleanBrand = function (brandText) {
+
+    // => 
+    //Prevail Maximum Underwear, Prevail Maximum Underwear => Prevail Maximum Underwear
+    //Rock &amp; Roll => Rock & Roll
+    //R &amp; B Wire Products => R & B Wire Products
+    //TRIONIC USA, INC. => TRIONIC USA
+    if (brandText.indexOf('Everest &amp; Jennings') > -1) {
+        return brandText.replace('Everest &amp; Jennings', 'Everest & Jennings')
+    }
+    if (brandText.indexOf('Rock &amp; Roll') > -1) {
+        return brandText.replace('Rock &amp; Roll', 'Rock & Roll')
+    }
+    if (brandText.indexOf('R &amp; B Wire Products') > -1) {
+        return brandText.replace('R &amp; B Wire Products', 'R & B Wire Products')
+    }
+    if (brandText.indexOf('TRIONIC USA, INC.') > -1) {
+        return brandText.replace('TRIONIC USA, INC.', 'TRIONIC USA')
+    }
 }
 
 var getFloat = function (strPrice) {
